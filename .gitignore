@@ -1,9 +1,19 @@
 node_modules/
 *.log
-database/*.db
-database/*.sqlite*
-database/*.db-wal
-database/*.db-shm
+# SQLite（位于 project/database/）
+project/database/*.db
+project/database/*.sqlite*
+project/database/*.db-wal
+project/database/*.db-shm
 dist/
 .pyc/*
 .env
+
+# 前端 Angular
+project/client/node_modules/
+project/client/dist/
+.project/client/.angular/cache/
+project/server/node_modules/
+project/server/dist/
+project/server/*.log
+

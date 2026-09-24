@@ -10,7 +10,7 @@
     "mode": "Modus",
     "modeLocal": "Lokal 2P (ein Gerät, Hot-Seat)",
     "modeOnline": "Online 2P (anderes Gerät)",
-    "modeAI": "Gegen die Hase (KI)",
+    "modeAI": "Gegen den Hasen (KI)",
     "difficulty": "Schwierigkeit",
     "small": "Leicht (für Kinder)",
     "big": "Schwerer",
@@ -50,14 +50,14 @@
     "dice": "Würfel"
   },
   "tiles": {
-    "start": "Zusammen-Tor",
+    "start": "Heimat-Tor",
     "lantern": "Laternenplatz",
     "riddle": "Rätselstand",
     "knowledge": "Wissen",
     "math": "Rechenkunst",
     "moonview": "Mondansicht",
     "feast": "Familienfest",
-    "toss": "Wurf-Becken",
+    "toss": "Wurfspiel",
     "rabbit": "Hase-Loch",
     "moonwell": "Mondbrunnen",
     "wind": "Herbstwind"
@@ -82,8 +82,8 @@
     "tossWin": "Der Wurf gelingen! +{amount}"
   },
   "result": {
-    "title": "Zusammensturz-Bilanz",
-    "winner": "{name} ist der Zusammensturz-Meister!",
+    "title": "Tagesergebnis",
+    "winner": "{name} ist der Zuhause-Sieger!",
     "draw": "Unentschieden",
     "playAgain": "Nochmal spielen",
     "backLobby": "Zur Lobby"
