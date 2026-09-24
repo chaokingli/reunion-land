@@ -43,12 +43,19 @@ export class RoomManager {
     return this.rooms.get(id) ?? null;
   }
 
-  joinSocket(socket: Socket, data: { roomId: string; playerIdx: number }): RoomInfo {
+  joinSocket(socket: Socket, data: { roomId: string; playerIdx?: number }): RoomInfo {
     const room = this.getRoom(data.roomId);
     if (!room) throw new Error('room not found');
     if (room.status === 'finished') throw new Error('game finished');
-    if (data.playerIdx < 0 || data.playerIdx >= 4) throw new Error('invalid player index');
-    room.sockets.set(socket.id, { playerIdx: data.playerIdx });
+    // 未指定座次：自动分配第一个空闲席（在线双人用）
+    let idx = data.playerIdx;
+    if (idx === undefined) {
+      const taken = new Set([...room.sockets.values()].map((e) => e.playerIdx));
+      for (let i = 0; i < room.state.players.length; i++) if (!taken.has(i)) { idx = i; break; }
+      if (idx === undefined) throw new Error('room full');
+    }
+    if (idx < 0 || idx >= 4) throw new Error('invalid player index');
+    room.sockets.set(socket.id, { playerIdx: idx });
     // 加入 socket.io 房间，只接收本房间的 state
     socket.join(`room:${room.id}`);
     // 在线模式：2 人以上进入

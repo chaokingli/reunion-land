@@ -30,9 +30,11 @@ export class LobbyComponent {
   protected roomCode = signal('');
   protected joinedRoom = signal(false);
   protected locale = signal<'zh_CN' | 'en' | 'de'>('zh_CN');
+  protected joinCode = signal('');
 
-  constructor() {}
-  // constructor unused for DI (fields use inject)
+  constructor() {
+    // 构造器占位（字段用 inject）
+  }
 
 
   protected start() {
@@ -49,8 +51,7 @@ export class LobbyComponent {
           this.router.navigate(['/game']);
         } else if (mode === 'online') {
           this.joinedRoom.set(true);
-          // 房间已建，等玩家 1 join（本地热座同设备）→ 此处直接 join 玩家 0
-          this.gw.join(r.roomId, 0);
+          this.gw.join(r.roomId, 0); // 玩家 1 作为 seat 0 入局，等待玩家 2
           this.router.navigate(['/game']);
         } else {
           // ai 模式：客户端作为 human 玩家 0，AI 是 1
@@ -59,6 +60,15 @@ export class LobbyComponent {
         }
       })
       .catch((e) => { this.errMsg.set(e.message); this.creating.set(false); });
+  }
+
+  // 玩家 2：输入对方提供的房间码加入
+  protected joinRoom() {
+    const code = this.joinCode().trim();
+    if (!code) return;
+    this.errMsg.set('');
+    this.gw.join(code, -1); // -1 表示让服务端自动分配空闲座次
+    this.router.navigate(['/game']);
   }
 
   protected addPlayer() {

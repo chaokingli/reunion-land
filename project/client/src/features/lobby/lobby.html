@@ -45,9 +45,24 @@
 
   @if (errMsg()) { <p class="err">{{ errMsg() }}</p> }
 
+  @if (mode() === 'online' && roomCode() === '') {
+    <section class="join-row">
+      <input [ngModel]="joinCode()" (ngModelChange)="joinCode.set($event)" class="code-input"
+        [placeholder]="i18n.getT('lobby.joinRoomCode')" style="flex:1;min-width:180px">
+      <button class="btn-sm" (click)="joinRoom()" [disabled]="joinCode().length === 0">{{ i18n.getT('lobby.join') }}</button>
+    </section>
+  }
+
   <button class="start" [disabled]="creating()" (click)="start()">
     {{ creating() ? i18n.getT('common.loading') : i18n.getT('lobby.start') }}
   </button>
+
+  @if (roomCode() !== '') {
+    <section class="roomcode">
+      <span>{{ i18n.getT('lobby.roomCode') }}</span>
+      <code class="code">{{ roomCode() }}</code>
+    </section>
+  }
 
   @if (roomCode() !== '') {
     <section class="roomcode">

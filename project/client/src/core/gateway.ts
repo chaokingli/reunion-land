@@ -53,10 +53,10 @@ export class Gateway {
     if (this.socket) { this.socket.disconnect(); this.socket = null; this.connected.set(false); }
   }
 
-  join(roomId: string, playerIdx = 0): void {
+  join(roomId: string, playerIdx?: number): void {
     this.connect(roomId);
     this.#roomId = roomId;
-    this.#myIndex = playerIdx;
+    this.#myIndex = playerIdx ?? -1;
     this.socket?.emit('join', { roomId, playerIdx });
   }
 
