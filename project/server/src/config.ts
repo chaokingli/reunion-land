@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export const PORT = Number(process.env.PORT ?? '8080');
+export const PORT = Number(process.env.PORT ?? '8082');
 export const SOCKET_PORT = process.env.SOCKET_PORT ?? PORT;
 export const DB_PATH = process.env.DB_PATH ?? path.resolve(__dirname, '../../database/reunion.db');
 // AI（可选）：未配置时走本地规则，游戏仍可完整运行

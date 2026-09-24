@@ -1,0 +1,23 @@
+{
+  "name": "reunion-land",
+  "version": "1.0.0",
+  "private": true,
+  "description": "团圆大富翁 (Reunion Land / Zuhause-Spiel) — 中秋主题儿童棋盘游戏",
+  "scripts": {
+    "install:all": "(cd project/server && npm install --silent) && (cd project/client && npm install --silent)",
+    "postinstall": "npm run install:all",
+    "build:server": "cd project/server && tsc",
+    "build:client": "cd project/client && npx ng build --configuration=production",
+    "build": "npm run build:server && npm run build:client",
+    "start:server": "cd project/server && node dist/index.js",
+    "start:client": "cd project/client && npx ng serve --port 3000 --configuration=development",
+    "start": "node scripts/run-dev.mjs",
+    "test": "cd project/server && npx vitest run",
+    "test:online": "cd project/server && node tests/online.spec.mjs",
+    "test:ai": "cd project/server && node tests/ai.spec.mjs",
+    "test:all": "npm run test && npm run test:online && npm run test:ai"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
