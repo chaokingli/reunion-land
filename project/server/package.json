@@ -1,0 +1,36 @@
+{
+  "name": "@reunion-land/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reunion Land (团圆大富翁) game server - Express + socket.io + SQLite",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "node --watch src/index.ts",
+    "start": "node src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "seed": "node src/db/seed.ts"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "socket.io": "^4.8.3",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.0.0",
+    "socket.io-client": "^4.8.3",
+    "typescript": "~5.5.3",
+    "vitest": "^1.6.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@11.10.0": true
+  }
+}

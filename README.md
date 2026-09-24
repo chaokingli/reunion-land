@@ -19,5 +19,10 @@
 - `project/client/` —— Angular 前端
 - `project/database/` —— SQLite 数据文件
 
+## 命名
+- **运行时中文名**：团圆大富翁（界面标题使用）
+- **英文名 / 目录名**：Reunion Land → `reunion-land`
+- **德语工作名**：Zuhause-Spiel（阶段 6 人工审读定稿）
+
 ## 状态
-📄 文档阶段（规则已定 v1.0，计划已定）→ 待确认后进入 P1 开发。
+🔨 开发中 —— P0（骨架+文档）✅ → P1（规则引擎+单测）…

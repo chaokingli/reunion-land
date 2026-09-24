@@ -20,8 +20,10 @@
 
 ## 2. 目录结构（已创建）
 
+> 命名规则：游戏中文名「团圆大富翁」用于运行时（界面标题）；目录/英文名用 **Reunion Land** → `reunion-land`；德语工作名 `Zuhause-Spiel`（待人工审读定稿）。
+
 ```
-团圆大富翁/
+reunion-land/
 ├── README.md                    # 项目简介（本阶段已写）
 ├── .gitignore / .eslintrc / .prettierrc
 └── project/
@@ -190,7 +192,7 @@ CREATE TABLE IF NOT EXISTS games (
 | 德语翻译质量 | AI 翻译 + 人工校对清单；de 字符串单独 checklist |
 | AI 太强/太弱 | 70% 正确率参数可调 + 自动对局测试（1000 局统计胜率） |
 | 数学题太难 | 两档难度 + 上限（小月 ≤15 / 满月 ≤40） |
-| 目录名含中文导致某些工具异常 | 如遇问题，一键重命名为 `tuan-yuan-da-fangson`（docs 不受影响） |
+| 目录名含中文导致某些工具异常 | 已采用英文名 `reunion-land` 规避；中文名仅出现在运行时与文档中 |
 
 ## 10. 待办（MVP 后）
 
