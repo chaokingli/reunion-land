@@ -30,7 +30,9 @@
     "join": "Join room",
     "joinRoomCode": "Enter room code",
     "joinBtn": "Join",
-    "langNote": "Questions are in this player's language"
+    "langNote": "Questions are in this player's language",
+    "kindAI": "AI player (Rabbit)",
+    "kindHuman": "Human player"
   },
   "game": {
     "coins": "Moon Coins",

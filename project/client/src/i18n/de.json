@@ -30,7 +30,9 @@
     "join": "Raum beitreten",
     "joinRoomCode": "Raumcode eingeben",
     "joinBtn": "Beitreten",
-    "langNote": "Fragen in der Sprache dieses Spielers"
+    "langNote": "Fragen in der Sprache dieses Spielers",
+    "kindAI": "KI-Spieler (Hase)",
+    "kindHuman": "Menschlicher Spieler"
   },
   "game": {
     "coins": "Mondmünzen",

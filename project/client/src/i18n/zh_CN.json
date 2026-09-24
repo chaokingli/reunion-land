@@ -30,7 +30,9 @@
     "join": "加入房间",
     "joinRoomCode": "输入房间码",
     "joinBtn": "加入",
-    "langNote": "答题题目按本玩家语言出"
+    "langNote": "答题题目按本玩家语言出",
+    "kindAI": "AI 玩家（兔姐）",
+    "kindHuman": "人类玩家"
   },
   "game": {
     "coins": "月亮币",

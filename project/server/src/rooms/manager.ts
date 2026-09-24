@@ -34,7 +34,8 @@ export class RoomManager {
       aiTimer: null,
     };
     // 本地热座模式：立即可玩（同一浏览器操作多人）
-    if (config.mode === 'local') room.status = 'playing';
+    // AI 模式：仅 1 个 human socket（AI 在服务端自驱），也立即可玩
+    if (config.mode === 'local' || config.mode === 'ai') room.status = 'playing';
     this.rooms.set(id, room);
     return room;
   }
@@ -58,9 +59,12 @@ export class RoomManager {
     room.sockets.set(socket.id, { playerIdx: idx });
     // 加入 socket.io 房间，只接收本房间的 state
     socket.join(`room:${room.id}`);
-    // 在线模式：2 人以上进入
-    if (room.status === 'lobby' && room.state.mode !== 'local' && room.sockets.size >= 2) {
-      room.status = 'playing';
+    // 在线模式：所有 human 玩家都加入后开始（AI 玩家不算 socket）
+    if (room.status === 'lobby' && room.state.mode === 'online') {
+      const humanCount = room.state.players.filter((p) => p.kind === 'human').length;
+      if (room.sockets.size >= humanCount) {
+        room.status = 'playing';
+      }
     }
     this.emitState(room);
     return room;

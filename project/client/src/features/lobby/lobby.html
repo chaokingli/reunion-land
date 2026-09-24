@@ -35,6 +35,9 @@
     <div class="player-row" *ngFor="let p of players(); let i = index">
       <button class="rm" (click)="rmPlayer(i)" [disabled]="players().length <= 2">✕</button>
       <input class="name" placeholder="{{ i18n.getT('lobby.name' + (i + 1)) }}" [ngModel]="p.name" (ngModelChange)="setName(i, $event)" />
+      <button class="kind" [class.ai]="p.kind === 'ai'" (click)="toggleKind(i)" [title]="p.kind === 'ai' ? i18n.getT('lobby.kindAI') : i18n.getT('lobby.kindHuman')">
+        {{ p.kind === 'ai' ? '🤖' : '👤' }}
+      </button>
       <select [ngModel]="p.lang" (ngModelChange)="setLang(i, $event)">
         <option value="zh_CN">{{ i18n.getT('lobby.langZh') }}</option>
         <option value="en">{{ i18n.getT('lobby.langEn') }}</option>
@@ -56,13 +59,6 @@
   <button class="start" [disabled]="creating()" (click)="start()">
     {{ creating() ? i18n.getT('common.loading') : i18n.getT('lobby.start') }}
   </button>
-
-  @if (roomCode() !== '') {
-    <section class="roomcode">
-      <span>{{ i18n.getT('lobby.roomCode') }}</span>
-      <code class="code">{{ roomCode() }}</code>
-    </section>
-  }
 
   @if (roomCode() !== '') {
     <section class="roomcode">

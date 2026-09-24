@@ -98,3 +98,11 @@ select, input {
   border: none;
   cursor: pointer;
 }
+.kind {
+  width: 34px; height: 34px; border-radius: 8px; border: 1px solid #ccc;
+  background: #fff; cursor: pointer; font-size: 18px;
+}
+.kind.ai {
+  background: #fff3e0; border-color: #f2a33b;
+}
+.kind:hover { outline: 1px solid #999; }

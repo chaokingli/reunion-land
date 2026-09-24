@@ -77,6 +77,10 @@ export class LobbyComponent {
       this.players.update((p) => [...p, { name: 'Player ' + (p.length + 1), lang: lang as any, kind: 'human', avatar: p.length % 4 === 0 ? '🍁' : '🌙' }]);
     }
   }
+  // 切换玩家类型为 AI（兔姐）/ 人类
+  protected toggleKind(i: number) {
+    this.players.update((p) => p.map((q, idx) => (idx === i ? { ...q, kind: q.kind === 'ai' ? 'human' : 'ai' } : q)));
+  }
   protected rmPlayer(i: number) {
     if (this.players().length > 2) this.players.update((p) => p.filter((_, idx) => idx !== i));
   }

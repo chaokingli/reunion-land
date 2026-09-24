@@ -47,7 +47,11 @@ export class GameComponent {
   protected isMyTurn() {
     const s = this.state();
     if (!s || s.finished) return false;
-    return s.pending.kind === 'none';
+    if (s.pending.kind !== 'none') return false;
+    // 轮到 AI（兔姐）时，人类不能操作（服务端自驱）
+    const p = s.players[s.turn];
+    if (p && p.kind === 'ai') return false;
+    return true;
   }
   protected currentPending() { return this.state()?.pending; }
   protected pendingQuestion() {
