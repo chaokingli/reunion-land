@@ -1,0 +1,93 @@
+<ng-template #loading><div class="loading-wrap"><div class="loading">{{ i18n.getT('common.loading') }}</div></div></ng-template>
+<div class="game" *ngIf="state(); else loading">
+
+  <!-- 顶栏 -->
+  <header class="top">
+    <div class="title-wrap">
+      <h1 class="title">{{ i18n.getT('title') }}</h1>
+      <span class="turn-badge" *ngIf="!isFinished()">{{ i18n.getT('game.currentPlayer') }}: {{ currentTurn() }}</span>
+    </div>
+    <div class="scoreboard">
+      @for (p of players(); track p.id) {
+        <div class="pbar" [class.curt]="p.id === curTurn()">
+          <span class="avatar">{{ p.avatar }}</span>
+          <div class="pname" [title]="p.name">{{ p.name }}</div>
+          <span class="coins">{{ i18n.getT('game.coins') }} {{ p.coins }}</span>
+          <span class="lanterns">{{ i18n.getT('game.lanterns') }} {{ p.lanterns }}/3</span>
+          <span class="pos">格 {{ p.position }}</span>
+        </div>
+      }
+    </div>
+  </header>
+
+  <div class="body">
+    <!-- 棋盘 -->
+    <div class="board">
+      @for (cell of cells(); track cell.id) {
+        <div
+          class="cell"
+          [class.border]="cell.tiles.length > 0"
+          [class]="getKindClass(cell.tiles[0]?.kind)"
+          [class.tl-2]="cell.tiles.length > 1"
+        >
+          @for (t of cell.tiles; track t.label) {
+            <span class="tile-label small" *ngIf="cell.tiles.length > 1">{{ t.label }}</span>
+            <span class="tile-label" *ngIf="cell.tiles.length === 1">{{ t.label }}</span>
+          }
+          @for (p of cell.pcs; track p.id) {
+            <span class="piece" [style.color]="pieceColor(p.id)" [class.big]="p.id === curTurn()"></span>
+          }
+          @if (cell.tiles.length && cell.tiles[0]?.move !== undefined) {
+            <span class="move-tag">{{ cell.tiles[0].move > 0 ? '+' + cell.tiles[0].move : cell.tiles[0].move }}</span>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- 右侧面板 -->
+    <aside class="panel">
+      <div class="dice">
+        <span class="die" [class.rolling]="diceValue() !== null">{{ getDiceDisplay() }}</span>
+        <span class="die-label" *ngIf="diceValue() !== null">{{ i18n.getT('game.dice') }} = {{ diceValue() }}</span>
+      </div>
+
+      @if (currentPending()?.kind === 'buy') {
+        <div class="action-block">
+          <p class="act-lbl">{{ i18n.getT('game.lanternBuy') }}</p>
+          <button class="buy" (click)="buy()">{{ i18n.getT('game.lanternBuy') }}</button>
+          <button class="buy-skip" (click)="skip()">{{ i18n.getT('game.lanternSkip') }}</button>
+        </div>
+      }
+
+      @if (pendingQuestion()) {
+        <div class="action-block question-block">
+          <p class="qtype" *ngIf="pendingQuestion()?.kind === 'math'">{{ i18n.getT('question.askMath') }}</p>
+          <p class="qtype" *ngIf="pendingQuestion()?.kind === 'riddle'">{{ i18n.getT('question.askRiddle') }}</p>
+          <p class="qtype" *ngIf="pendingQuestion()?.kind === 'knowledge'">{{ i18n.getT('question.askKnowledge') }}</p>
+          <p class="qtext">{{ pendingQuestion()?.text }}</p>
+          <div class="options">
+            <button class="opt" *ngFor="let opt of getPendingOptions(); let oIdx = index" (click)="answer(oIdx)">{{ opt }}</button>
+          </div>
+          <button class="hint-btn" (click)="hint()" [disabled]="currentPlayer()?.hintUsed">{{ i18n.getT('game.hint') }}</button>
+        </div>
+      }
+
+      @if (isMyTurn() && currentPending()?.kind === 'none') {
+        <button class="roll" (click)="rollDice()">{{ i18n.getT('game.rollDice') }}</button>
+      }
+
+      @if (animMsg()) {
+        <div class="anim" [class.]="animKind()">{{ animMsg() }}</div>
+      }
+    </aside>
+  </div>
+
+  <!-- 结束覆盖层 -->
+  <div class="result-overlay" *ngIf="isFinished()">
+    <div class="result-card">
+      <h2>{{ getResultTitle() }}</h2>
+      <button class="btn-primary" (click)="playAgain()">{{ i18n.getT('result.playAgain') }}</button>
+      <button class="btn-secondary" (click)="backLobby()">{{ i18n.getT('result.backLobby') }}</button>
+    </div>
+  </div>
+</div>

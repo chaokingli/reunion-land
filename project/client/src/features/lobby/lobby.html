@@ -1,0 +1,58 @@
+<div class="lobby">
+  <header>
+    <h1 class="title">{{ i18n.getT('title') }}</h1>
+    <p class="subtitle">{{ i18n.getT('subtitle') }}</p>
+    <p class="tip">{{ i18n.getT('lobby.tip') }}</p>
+  </header>
+
+  <section class="lang-row">
+    <span class="lbl">{{ i18n.getT('lobby.lang') }}</span>
+    <button class="lang-btn" [class.active]="locale() === 'zh_CN'" (click)="changeLocale('zh_CN')">{{ i18n.getT('lobby.langZh') }}</button>
+    <button class="lang-btn" [class.active]="locale() === 'en'" (click)="changeLocale('en')">{{ i18n.getT('lobby.langEn') }}</button>
+    <button class="lang-btn" [class.active]="locale() === 'de'" (click)="changeLocale('de')">{{ i18n.getT('lobby.langDe') }}</button>
+  </section>
+
+  <section class="cfg">
+    <div class="field">
+      <span class="lbl">{{ i18n.getT('lobby.mode') }}</span>
+      <select [ngModel]="mode()" (ngModelChange)="mode.set($event)">
+        <option value="local">{{ i18n.getT('lobby.modeLocal') }}</option>
+        <option value="online">{{ i18n.getT('lobby.modeOnline') }}</option>
+        <option value="ai">{{ i18n.getT('lobby.modeAI') }}</option>
+      </select>
+    </div>
+    <div class="field">
+      <span class="lbl">{{ i18n.getT('lobby.difficulty') }}</span>
+      <select [ngModel]="difficulty()" (ngModelChange)="difficulty.set($event)">
+        <option value="small">{{ i18n.getT('lobby.small') }}</option>
+        <option value="big">{{ i18n.getT('lobby.big') }}</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="players">
+    <button class="add" (click)="addPlayer()" [disabled]="players().length >= 4">{{ i18n.getT('lobby.2') }}</button>
+    <div class="player-row" *ngFor="let p of players(); let i = index">
+      <button class="rm" (click)="rmPlayer(i)" [disabled]="players().length <= 2">✕</button>
+      <input class="name" placeholder="{{ i18n.getT('lobby.name' + (i + 1)) }}" [ngModel]="p.name" (ngModelChange)="setName(i, $event)" />
+      <select [ngModel]="p.lang" (ngModelChange)="setLang(i, $event)">
+        <option value="zh_CN">{{ i18n.getT('lobby.langZh') }}</option>
+        <option value="en">{{ i18n.getT('lobby.langEn') }}</option>
+        <option value="de">{{ i18n.getT('lobby.langDe') }}</option>
+      </select>
+    </div>
+  </section>
+
+  @if (errMsg()) { <p class="err">{{ errMsg() }}</p> }
+
+  <button class="start" [disabled]="creating()" (click)="start()">
+    {{ creating() ? i18n.getT('common.loading') : i18n.getT('lobby.start') }}
+  </button>
+
+  @if (roomCode() !== '') {
+    <section class="roomcode">
+      <span>{{ i18n.getT('lobby.roomCode') }}</span>
+      <code class="code">{{ roomCode() }}</code>
+    </section>
+  }
+</div>

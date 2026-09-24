@@ -15,7 +15,10 @@ app.use(cors());
 app.use(express.json());
 
 const httpServer = http.createServer(app);
-const io: IoServer = new Server(httpServer);
+// 允许跨域（客户端 3000 → 服务端 8082）；socket.io 独立于 Express 中间件，需单独设 CORS
+const io: IoServer = new Server(httpServer, {
+  cors: { origin: true, credentials: true },
+});
 const manager = new RoomManager(io);
 getDb();
 seedAll();

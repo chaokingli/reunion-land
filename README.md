@@ -24,5 +24,38 @@
 - **英文名 / 目录名**：Reunion Land → `reunion-land`
 - **德语工作名**：Zuhause-Spiel（阶段 6 人工审读定稿）
 
+## 快速开始
+
+需要 Node.js 20+（推荐 24）。
+
+### 1. 安装依赖
+```bash
+cd project/server && npm install
+cd ../client && npm install
+```
+
+### 2. 启动后端（服务端：8082）
+```bash
+cd project/server
+npm run build        # 编译为 dist/
+PORT=8082 npm start  # 默认 8082（8080 被其他服务占时改端口）
+```
+
+### 3. 启动前端（客户端：3000）
+```bash
+cd project/client
+npm run build        # 生产构建 → dist/client/browser（可选）
+npm run serve        # 开发服务器（http://localhost:3000）
+```
+
+### 4. 开始玩
+浏览器打开 `http://localhost:3000`：
+1. 大厅选「本地双人」→ 填两人姓名/语言 → 开局
+2. 两人轮流点「掷骰子」（热座，谁该轮到谁点）
+3. 落到灯笼位可买/跳过；落到谜/知/数学格答题；答对拿分
+4. 最先集齐 **3 个灯笼** 者胜（或 40 回合内灯笼+金币最多者胜）
+
+> 测试（服务端）：`cd project/server && npm test`
+
 ## 状态
-🔨 开发中 —— P0（骨架+文档）✅ → P1（规则引擎+单测）…
+🔨 开发中 — P0–P3 ✅ 已完成并端到端验证；P4（在线双人）⏳ / P5（AI 兔姐）⏳ / P6（i18n 全量 + 德语审读）⏳ / P7（部署）☐
