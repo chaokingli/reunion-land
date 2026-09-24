@@ -182,7 +182,7 @@ CREATE TABLE IF NOT EXISTS games (
 | P4 | 在线双人（socket + 建房 + 断线重连） | 两台设备（或同设备双浏览器）一局可完成 | ✅ (服务端 2 socket auto 席次 + 大厅 join) |
 | P5 | AI 兔姐（对手 + 提示） | AI 单局胜率约 40–50%（可被儿童赢）；提示可用 | ✅ (1v兔姐可赢；大厅可切换 AI/人类) |
 | P6 | i18n（zh/en/de 全量）+ 配色/音效/动画 | 三种语言 UI 可切；平板横屏可用 | ⏳ 三语 key 全量一致；zh 验证✅；en/de 需上线前人工校对（已修 de 的「团圆→崩溃」误译） |
-| P7 | 部署：`npm start` 一键、可选 Docker、README 启动指南 | 全新机器 10 min 内可跑起并开一局 | ☐ |
+| P7 | 部署：`npm start` 一键、可选 Docker、README 启动指南 | 全新机器 10 min 内可跑起并开一局 | ✅ (npm start 一键起全栈；可选 Docker 待补) |
 
 **MVP 定义**：P0–P6 全部完成。P7 紧随其后。
 
