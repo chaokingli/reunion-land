@@ -39,7 +39,17 @@ cd project/server && npm run build:server && node dist/index.js
 cd project/client && npm run start:client
 ```
 > 若 8080/8082 被占用：`PORT=9000 cd project/server && node dist/index.js`
-> 客户端连的端口在 `client/src/core/config.ts` 的 `SERVER_URL`。
+> 客户端连的端口在 `client/src/core/config.ts` 的 `SERVER_URL`（dev 8082，prod 同域 ''）。
+
+### Docker 部署（单容器，同端口同域）
+```bash
+# 构建并启动，访问 http://localhost:3000
+docker compose up --build
+# 或
+docker build -t reunion-land . 
+ docker run -d --rm -p 3000:3000 reunion-land:latest
+```
+> 容器内：Express 服务 同域 → 既出 API/socket，又出构建后的前端；数据库可加 volume 持久化（见 `docker-compose.yml`）。
 
 ## 玩法模式
 | 模式 | 说明 |
@@ -83,8 +93,8 @@ LLM_MODEL=gpt-4o-mini
 > 本地策略（兔姐）始终作为默认对手，LLM 仅增强提示话术。
 
 ## 状态
-🔨 **P7 部署基础完成**：`npm start` 一键起全栈；后端编译 + 前端构建无错误。
-⏳ 待做：en/de **人工审读**（AI 翻译，重点德语）；音效/动画、平板横屏；可选 Docker。
+✅ **P7 部署完成**：`npm start` 一键起全栈；Docker 单容器同域部署（已验证构建+运行）。
+⏳ 待做：en/de **人工审读**（AI 翻译，重点德语）；音效/动画、平板横屏。
 详见 `project/docs/plan.md`。
 
 ## 命名
