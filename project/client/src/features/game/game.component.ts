@@ -115,9 +115,30 @@ export class GameComponent {
     return {
       dice: ev.dice?.toString() ?? '',
       amount: (ev.amount ?? 0).toString(),
-      name: p ? (p[0]?.name ?? '') : '',
+      // 按事件所属玩家取名字（WIN 是赢家、TURN_END 是本轮玩家），而非固定的 p[0]
+      name: p && ev.player >= 0 ? p[ev.player].name : '',
       option: ev.option ?? '',
     };
+  }
+  // 事件类型(大写蛇形) -> i18n 文案 key(camelCase)，替代原来 'events.' + ev.type 的硬拼
+  private eventKey(ev: GameEvent): string {
+    if (ev.type === 'QUESTION_ANSWERED') return ev.correct ? 'events.answerYes' : 'events.answerNo';
+    // 投壶中奖也是 BONUS_COINS 但 tag='toss'，用专属文案
+    if (ev.type === 'BONUS_COINS') return ev.tag === 'toss' ? 'events.tossWin' : 'events.bonus';
+    if (ev.type === 'MOVED' && ev.via) return 'events.' + ev.via; // rabbit / moonwell / wind
+    const table: Record<string, string> = {
+      DICE_ROLLED: 'events.roll',
+      PASS_START: 'events.passStart',
+      RENT: 'events.rent',
+      LANTERN_BOUGHT: 'events.buy',
+      LANTERN_SKIPPED: 'events.skip',
+      QUESTION_REQUIRED: 'events.question',
+      HINT: 'events.hint',
+      TURN_END: 'events.turnEnd',
+      WIN: 'events.win',
+      TIME_UP: 'events.timeUp',
+    };
+    return table[ev.type] ?? '';
   }
   private eventKind(ev: GameEvent): 'bonus' | 'info' | 'win' | 'lose' {
     if (ev.type === 'DICE_ROLLED') return 'info';
@@ -204,7 +225,9 @@ export class GameComponent {
       const ev = evs.at(-1) as GameEvent;
       if (ev.type !== 'DICE_ROLLED') {
         this.playEventSound(ev);
-        this.showMsg('events.' + ev.type, this.eventVars(ev), this.eventKind(ev));
+        // 查不到对应文案（如无 via 的 MOVED）时不显示，避免回显 raw key
+        const key = this.eventKey(ev);
+        if (key) this.showMsg(key, this.eventVars(ev), this.eventKind(ev));
       }
     });
   }
