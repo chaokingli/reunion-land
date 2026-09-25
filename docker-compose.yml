@@ -1,0 +1,16 @@
+# 团圆大富翁 单容器部署
+# 用法: docker compose up --build
+services:
+  reunion:
+    build: .
+    ports:
+      - "3000:3000"
+    # 持久化数据库（可选）
+    volumes:
+      - reunion-db:/app/project/database
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+
+volumes:
+  reunion-db:

@@ -66,7 +66,7 @@
     "roll": "Rolled {dice}",
     "passStart": "Passed the gate, +{amount} moon coins",
     "bonus": "+{amount} moon coins",
-    "rent": "Paid rent {amount}",
+    "rent": "Paid rent: {amount}",
     "buy": "Bought a lantern",
     "skip": "Skipped buying a lantern",
     "question": "Answer time",
@@ -78,7 +78,7 @@
     "wind": "Autumn wind blows",
     "turnEnd": "Turn over",
     "win": "{name} got 3 lanterns and wins!",
-    "timeUp": "40 turns up — {name} wins with more lanterns",
+    "timeUp": "After 40 turns — {name} wins with the most lanterns",
     "tossWin": "Tossed a jar! +{amount}"
   },
   "result": {

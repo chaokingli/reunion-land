@@ -1,0 +1,14 @@
+# 依赖与构建产物（构建时用 npm ci 从 lock 装，不复制大 node_modules）
+**/node_modules
+**/dist
+**/npm-debug.log
+
+# 开发/本地数据
+*.log
+project/database/*.db
+project/database/*.db-wal
+project/database/*.db-shm
+
+# 本地配置
+.env
+project/server/.env

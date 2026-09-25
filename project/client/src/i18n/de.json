@@ -1,6 +1,6 @@
 {
   "title": "Mondfest zu Hause",
-  "subtitle": "Zusammen feiern am Mondfest",
+  "subtitle": "Beim Mondfest zusammen feiern",
   "lobby": {
     "welcome": "Willkommen! Wähle 2 Spieler und los",
     "create": "Raum anlegen",
@@ -79,7 +79,7 @@
     "turnEnd": "Zug vorbei",
     "win": "{name} hat 3 Laternen und gewinnt!",
     "timeUp": "40 Züge vorbei — {name} gewinnt mit mehr Laternen",
-    "tossWin": "Der Wurf gelingen! +{amount}"
+    "tossWin": "Der Wurf ist gelungen! +{amount}"
   },
   "result": {
     "title": "Tagesergebnis",

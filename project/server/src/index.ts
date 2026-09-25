@@ -2,9 +2,10 @@
 import express from 'express';
 import http from 'node:http';
 import cors from 'cors';
+import path from 'node:path';
 import { Server } from 'socket.io';
 import type { Server as IoServer } from 'socket.io';
-import { PORT } from './config.js';
+import { PORT, CLIENT_DIST, HAS_CLIENT_DIST } from './config.js';
 import { getDb } from './db/schema.js';
 import { seedAll } from './db/bank.js';
 import { RoomManager } from './rooms/manager.js';
@@ -60,6 +61,19 @@ app.get('/api/rooms/:id/state', (req, res) => {
   }
   res.json({ state: room.state });
 });
+
+// ---------- 静态前端（同域部署，存在构建产物时）----------
+if (HAS_CLIENT_DIST) {
+  app.use(express.static(CLIENT_DIST));
+  // SPA 路由兜底：未被 API/静态资源匹配的 GET → 返回 index.html
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api/')) {
+      res.status(404).json({ error: 'not found' });
+      return;
+    }
+    res.sendFile(path.join(CLIENT_DIST, 'index.html'));
+  });
+}
 
 // ---------- socket.io ----------
 io.on('connection', (socket) => {
