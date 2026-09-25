@@ -48,7 +48,8 @@
     "answerBtn": "Antwort senden",
     "hint": "Hinweis (einen ausschließen)",
     "hintDone": "Hinweis verbraucht",
-    "dice": "Würfel"
+    "dice": "Würfel",
+    "position": "Feld"
   },
   "tiles": {
     "start": "Heimat-Tor",

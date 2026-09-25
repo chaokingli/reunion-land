@@ -14,7 +14,7 @@
           <div class="pname" [title]="p.name">{{ p.name }}</div>
           <span class="coins">{{ i18n.getT('game.coins') }} {{ p.coins }}</span>
           <span class="lanterns">{{ i18n.getT('game.lanterns') }} {{ p.lanterns }}/3</span>
-          <span class="pos">格 {{ p.position }}</span>
+          <span class="pos">{{ i18n.getT('game.position') }} {{ p.position }}</span>
         </div>
       }
     </div>
@@ -46,8 +46,8 @@
           [class.tl-2]="cell.tiles.length > 1"
         >
           @for (t of cell.tiles; track t.label) {
-            <span class="tile-label small" *ngIf="cell.tiles.length > 1">{{ t.label }}</span>
-            <span class="tile-label" *ngIf="cell.tiles.length === 1">{{ t.label }}</span>
+            <span class="tile-label small" *ngIf="cell.tiles.length > 1">{{ tileLabel(t) }}</span>
+            <span class="tile-label" *ngIf="cell.tiles.length === 1">{{ tileLabel(t) }}</span>
           }
           @for (p of cell.pcs; track p.id) {
             <span class="piece" [class.land]="landedIds().includes(p.id)" [style.color]="pieceColor(p.id)" [class.big]="p.id === curTurn()"></span>

@@ -48,7 +48,8 @@
     "answerBtn": "提交答案",
     "hint": "提示（排除一个）",
     "hintDone": "已用完提示",
-    "dice": "骰子"
+    "dice": "骰子",
+    "position": "格"
   },
   "tiles": {
     "start": "团圆门",

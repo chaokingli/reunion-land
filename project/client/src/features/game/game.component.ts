@@ -92,6 +92,13 @@ export class GameComponent {
     if (!kind) return '';
     return 'kind-' + kind;
   }
+
+  // 棋盘格子文案：优先取 i18n 的 tiles.<kind> 译文，缺失时回退到中文 label
+  protected tileLabel(t: TileDef): string {
+    const key = 'tiles.' + t.kind;
+    const tr = this.i18n.get(key);
+    return tr === key ? t.label : tr;
+  }
   protected pieceColor(i: number): string {
     const map = ['var(--pc0)', 'var(--pc1)', 'var(--pc2)', 'var(--pc3)'];
     return map[i % 4] ?? 'var(--pc0)';

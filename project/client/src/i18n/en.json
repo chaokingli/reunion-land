@@ -48,7 +48,8 @@
     "answerBtn": "Submit Answer",
     "hint": "Hint (exclude one)",
     "hintDone": "Hint used up",
-    "dice": "Dice"
+    "dice": "Dice",
+    "position": "Square"
   },
   "tiles": {
     "start": "Reunion Gate",

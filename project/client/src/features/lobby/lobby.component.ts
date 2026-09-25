@@ -110,5 +110,7 @@ export class LobbyComponent {
   protected changeLocale(l: 'zh_CN' | 'en' | 'de') {
     this.locale.set(l);
     this.i18n.locale.set(l);
+    // 跟随全局语言切换，把所有玩家的答题语言一并同步，保证题目/选项与界面文案同语言（三语）
+    this.players.update((p) => p.map((q) => ({ ...q, lang: l }))); 
   }
 }
