@@ -46,8 +46,7 @@ cd project/client && npm run start:client
 # 构建并启动，访问 http://localhost:3000
 docker compose up --build
 # 或
-docker build -t reunion-land . 
- docker run -d --rm -p 3000:3000 reunion-land:latest
+docker build -t reunion-land . && docker run -d --rm -p 3000:3000 reunion-land:latest
 ```
 > 容器内：Express 服务 同域 → 既出 API/socket，又出构建后的前端；数据库可加 volume 持久化（见 `docker-compose.yml`）。
 
