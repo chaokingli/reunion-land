@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { toObservable } from '@angular/core/rxjs-interop';
@@ -6,12 +6,23 @@ import { Router } from '@angular/router';
 import { Gateway } from '../../core/gateway';
 import { I18nService } from '../../i18n/i18n.service';
 import { SoundService } from '../../core/sound.service';
-import { BOARD, cellAt, GRID_SIZE, type TileDef } from '../../shared/board';
-import type { GameState, GameEvent } from '../../shared/types';
+import { BOARD, TILE_COUNT, cellAt, GRID_SIZE, type TileDef } from '../../shared/board';
+import type { GameState, GameEvent, Player } from '../../shared/types';
 import { CELL_SVGS } from './game-icons';
 
 type Confetti = { id: number; left: string; size: number; color: string; delay: number; duration: number };
 const CONFETTI_COLORS = ['#ffd34d', '#ff5c5c', '#7c4dff', '#2979ff', '#00e07a', '#ffab00', '#ff7043', '#388e3c', '#433b93', '#d6262f', '#1565c0', '#2e7d32'];
+
+const PIECE_SVGS = [
+  // 0 玉兔
+  `<svg viewBox="0 0 32 40" width="100%" height="100%" aria-hidden="true"><ellipse cx="16" cy="37" rx="8" ry="2" fill="#000" opacity=".25"/><ellipse cx="10" cy="9" rx="3.1" ry="7" fill="currentColor"/><ellipse cx="22" cy="9" rx="3.1" ry="7" fill="currentColor"/><ellipse cx="10" cy="9.5" rx="1.5" ry="4.2" fill="#fff" opacity=".9"/><ellipse cx="22" cy="9.5" rx="1.5" ry="4.2" fill="#fff" opacity=".9"/><circle cx="16" cy="22" r="9" fill="currentColor"/><circle cx="12.6" cy="20.5" r="1.3" fill="#2b2118"/><circle cx="19.4" cy="20.5" r="1.3" fill="#2b2118"/><ellipse cx="16" cy="24.2" rx="1.8" ry="1.2" fill="#fff"/><path d="M8 28c2 3 12 3 16 0" stroke="#fff" stroke-width="1.2" fill="none" opacity=".7"/></svg>`,
+  // 1 灯笼
+  `<svg viewBox="0 0 32 40" width="100%" height="100%" aria-hidden="true"><ellipse cx="16" cy="37" rx="8" ry="2" fill="#000" opacity=".25"/><rect x="14" y="2" width="4" height="4" rx="1" fill="#5d4037"/><path d="M16 6v3" stroke="#5d4037" stroke-width="1.4"/><path d="M7 12h18l-2.2 16H9.2L7 12z" fill="currentColor"/><rect x="9" y="17" width="14" height="1.6" fill="#fff" opacity=".65"/><rect x="9.4" y="21.5" width="13.2" height="1.6" fill="#fff" opacity=".4"/><path d="M11 28h10l-1.2 4h-7.6z" fill="#5d4037"/><circle cx="16" cy="15" r="1.6" fill="#fff" opacity=".8"/></svg>`,
+  // 2 月亮
+  `<svg viewBox="0 0 32 40" width="100%" height="100%" aria-hidden="true"><ellipse cx="16" cy="37" rx="8" ry="2" fill="#000" opacity=".25"/><path d="M20 7a11 11 0 1 0 .2 22A8.5 8.5 0 1 1 20 7z" fill="currentColor"/><circle cx="12.5" cy="16" r="1.15" fill="#fff"/><circle cx="15.2" cy="20.5" r=".8" fill="#fff" opacity=".8"/><path d="M23 8l.7 2.1h2.2l-1.8 1.3.7 2.1-1.8-1.3-1.8 1.3.7-2.1-1.8-1.3h2.2z" fill="#FFD32A"/></svg>`,
+  // 3 桂花
+  `<svg viewBox="0 0 32 40" width="100%" height="100%" aria-hidden="true"><ellipse cx="16" cy="37" rx="8" ry="2" fill="#000" opacity=".25"/><circle cx="16" cy="14" r="4.2" fill="currentColor"/><circle cx="16" cy="8" r="3.2" fill="currentColor"/><circle cx="10.5" cy="12" r="3.2" fill="currentColor"/><circle cx="21.5" cy="12" r="3.2" fill="currentColor"/><circle cx="12" cy="18.5" r="3.2" fill="currentColor"/><circle cx="20" cy="18.5" r="3.2" fill="currentColor"/><circle cx="16" cy="14" r="1.5" fill="#fff" opacity=".85"/><rect x="14.6" y="22" width="2.8" height="10" rx="1.2" fill="#6d4c41"/><ellipse cx="16" cy="33" rx="5" ry="2" fill="currentColor"/></svg>`,
+];
 
 @Component({
   selector: 'app-game',
@@ -19,7 +30,7 @@ const CONFETTI_COLORS = ['#ffd34d', '#ff5c5c', '#7c4dff', '#2979ff', '#00e07a', 
   templateUrl: './game.html',
   styleUrl: './game.scss',
 })
-export class GameComponent {
+export class GameComponent implements OnDestroy {
   protected router = inject(Router);
   protected gw = inject(Gateway);
   protected i18n = inject(I18nService);
@@ -32,22 +43,33 @@ export class GameComponent {
   protected animMsg = signal<string>('');
   protected animKind = signal<'bonus' | 'info' | 'win' | 'lose'>('info');
 
-  // 动画：落子高亮（每次玩家移动时触发）
+  // 动画：落子高亮（走完最后一格时触发）
   protected landedIds = signal<number[]>([]);
+  // 棋子当前显示格（与服务器位置分开，便于逐步走动）
+  protected viewPos = signal<Record<number, number>>({});
+  protected hopPhase = signal<Record<number, 'a' | 'b' | ''>>({});
+  protected animating = signal(false);
   // 胜利彩带
   protected confetti = signal<Confetti[]>([]);
   protected confettiTimer: number | undefined = undefined;
+  private walkTimer: number | undefined = undefined;
+  private walkQueue: { id: number; steps: number[] }[] = [];
+  private resyncAfter = false;
+  private pieceHtml: SafeHtml[] | null = null;
 
-  // 每格显示的格子 + 玩家棋子
+  // 每格显示的格子 + 玩家棋子（按走动中的显示位置）
   protected cells = computed(() => {
     const s = this.state();
     if (!s) return [];
-    const out: { id: string; row: number; col: number; tiles: TileDef[]; pcs: any[] }[] = [];
+    const view = this.viewPos();
+    const out: { id: string; row: number; col: number; tiles: TileDef[]; pcs: Player[] }[] = [];
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
         const cell = cellAt(r, c);
         const tiles = cell.tiles.map((t) => BOARD[t] as TileDef);
-        const pcs = cell.tiles.length ? s.players.filter((p) => cell.tiles.includes(p.position)) : [];
+        const pcs = cell.tiles.length
+          ? s.players.filter((p) => cell.tiles.includes(view[p.id] ?? p.position))
+          : [];
         out.push({ id: r + ':' + c, row: r + 1, col: c + 1, tiles, pcs });
       }
     }
@@ -58,19 +80,22 @@ export class GameComponent {
     const s = this.state();
     return s?.players[s?.turn ?? 0]?.name ?? '';
   }
-  // 上一轮每个玩家位置，用于判断「谁移动了」从而播放落子动画
-  private prevPos: Record<number, number> = {};
   protected isMyTurn() {
     const s = this.state();
     if (!s || s.finished) return false;
+    if (this.animating()) return false;
     if (s.pending.kind !== 'none') return false;
     // 轮到 AI（兔姐）时，人类不能操作（服务端自驱）
     const p = s.players[s.turn];
     if (p && p.kind === 'ai') return false;
     return true;
   }
-  protected currentPending() { return this.state()?.pending; }
+  protected currentPending() {
+    if (this.animating()) return { kind: 'none' as const };
+    return this.state()?.pending;
+  }
   protected pendingQuestion() {
+    if (this.animating()) return null;
     const p = this.state()?.pending;
     return p?.kind === 'question' ? p.question : null;
   }
@@ -111,6 +136,10 @@ export class GameComponent {
   protected pieceColor(i: number): string {
     const map = ['var(--pc0)', 'var(--pc1)', 'var(--pc2)', 'var(--pc3)'];
     return map[i % 4] ?? 'var(--pc0)';
+  }
+  protected pieceSvg(i: number): SafeHtml {
+    if (!this.pieceHtml) this.pieceHtml = PIECE_SVGS.map((svg) => this.sanitizer.bypassSecurityTrustHtml(svg));
+    return this.pieceHtml[i % 4] ?? this.pieceHtml[0];
   }
   protected getDiceDisplay(): string {
     const d = this.diceValue();
@@ -205,28 +234,95 @@ export class GameComponent {
     this.router.navigate(['/lobby']);
   }
 
-  // 当游戏状态变化时判断谁移动了，触发落子动画 + 音效
-  private onStatePositionsChange() {
-    const s = this.state();
-    if (!s) return;
-    const landed: number[] = [];
+  // 棋子从当前显示格走到服务器位置。掷骰按 +1 逐格；兔子洞 / 月亮井 / 秋风按该格的 move 方向逐格。
+  private consumeMove(s: GameState, evs: GameEvent[]) {
+    if (this.animating() || this.walkQueue.length || this.walkTimer !== undefined) {
+      this.resyncAfter = true;
+      return;
+    }
+    const view = this.viewPos();
+    const known = Object.keys(view).length > 0;
     for (const p of s.players) {
-      if (this.prevPos[p.id] !== undefined && this.prevPos[p.id] !== p.position) landed.push(p.id);
-      this.prevPos[p.id] = p.position;
+      const from = view[p.id];
+      if (from === undefined) {
+        this.viewPos.update((v) => ({ ...v, [p.id]: p.position }));
+        continue;
+      }
+      if (from === p.position) continue;
+      const steps = known ? this.stepsFor(evs, p.id, from, p.position) : [];
+      if (steps.length) this.walkQueue.push({ id: p.id, steps });
+      else this.viewPos.update((v) => ({ ...v, [p.id]: p.position }));
     }
-    if (landed.length) {
-      this.landedIds.set(landed);
-      if (this.landedTimer !== undefined) { clearTimeout(this.landedTimer); this.landedTimer = undefined; }
-      this.landedTimer = setTimeout(() => this.landedIds.set([]), 700);
-    }
+    this.pumpWalk();
   }
-  private landedTimer: number | undefined = undefined;
+
+  private stepsFor(evs: GameEvent[], player: number, from: number, to: number): number[] {
+    const steps: number[] = [];
+    let cursor = from;
+    for (const ev of evs) {
+      if (ev.player !== player) continue;
+      if (ev.type === 'DICE_ROLLED' && ev.dice && ev.from === cursor) {
+        for (let i = 1; i <= ev.dice; i++) {
+          cursor = (ev.from + i) % TILE_COUNT;
+          steps.push(cursor);
+        }
+      } else if (ev.type === 'MOVED' && ev.from === cursor && ev.to !== undefined) {
+        const delta = BOARD[ev.from]?.move ?? 0;
+        if (!delta) continue;
+        const sign = Math.sign(delta);
+        for (let i = 0; i < Math.abs(delta); i++) {
+          cursor = (cursor + sign + TILE_COUNT) % TILE_COUNT;
+          steps.push(cursor);
+        }
+      }
+    }
+    return steps.length && steps[steps.length - 1] === to ? steps : [];
+  }
+
+  private pumpWalk() {
+    if (this.walkTimer !== undefined) return;
+    const job = this.walkQueue.shift();
+    if (!job) {
+      this.animating.set(false);
+      if (this.resyncAfter) {
+        this.resyncAfter = false;
+        const s = this.state();
+        if (s) this.consumeMove(s, this.gw.events() ?? []);
+      }
+      return;
+    }
+    this.animating.set(true);
+    let i = 0;
+    const tick = () => {
+      if (i >= job.steps.length) {
+        this.walkTimer = undefined;
+        this.hopPhase.update((h) => ({ ...h, [job.id]: '' }));
+        this.landedIds.set([job.id]);
+        this.walkTimer = window.setTimeout(() => {
+          this.landedIds.set([]);
+          this.walkTimer = undefined;
+          this.pumpWalk();
+        }, 420);
+        return;
+      }
+      const pos = job.steps[i++];
+      this.viewPos.update((v) => ({ ...v, [job.id]: pos }));
+      this.hopPhase.update((h) => ({ ...h, [job.id]: h[job.id] === 'a' ? 'b' : 'a' }));
+      this.walkTimer = window.setTimeout(tick, 280);
+    };
+    tick();
+  }
+
+  ngOnDestroy() {
+    if (this.walkTimer !== undefined) clearTimeout(this.walkTimer);
+    this.stopConfetti();
+  }
 
   constructor() {
     toObservable(this.gw.state).subscribe((s) => {
       this.state.set(s);
       if (!s) return;
-      this.onStatePositionsChange();
+      this.consumeMove(s, this.gw.events() ?? []);
       if (s.finished) this.onWin();
     });
     toObservable(this.gw.events).subscribe((evs) => {

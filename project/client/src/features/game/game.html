@@ -141,8 +141,18 @@
               </div>
             </div>
           }
-          @for (p of cell.pcs; track p.id) {
-            <span class="piece" [class.land]="landedIds().includes(p.id)" [style.background-color]="pieceColor(p.id)" [class.big]="p.id === curTurn()"></span>
+          @for (p of cell.pcs; track p.id; let i = $index) {
+            <span
+              class="piece"
+              [class.land]="landedIds().includes(p.id)"
+              [class.hop-a]="hopPhase()[p.id] === 'a'"
+              [class.hop-b]="hopPhase()[p.id] === 'b'"
+              [class.big]="p.id === curTurn()"
+              [style.color]="pieceColor(p.id)"
+              [style.--slot]="i"
+              [attr.aria-label]="p.name"
+              [innerHTML]="pieceSvg(p.id)"
+            ></span>
           }
           @if (cell.tiles.length && cell.tiles[0]?.move !== undefined) {
             <span class="move-tag">{{ cell.tiles[0].move > 0 ? '+' + cell.tiles[0].move : cell.tiles[0].move }}</span>
