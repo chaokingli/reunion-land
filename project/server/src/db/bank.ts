@@ -1,31 +1,99 @@
 import { getDb } from './schema.js';
+import { midAutumnQuestions } from './midautumn.js';
 import type { QuestionBank } from '../engine/types.js';
 
-type SeedQuestion = {
-  kind: 'riddle' | 'knowledge';
+export type BankQuestion = {
+  kind: 'riddle' | 'knowledge' | 'math';
   lang: 'zh_CN' | 'en' | 'de';
-  difficulty: 'small' | 'big';
+  difficulty: 'small' | 'medium' | 'big';
   title: string;
   options: string[];
   answer: number;
   tag?: string;
+  reward?: number;
+  penalty?: number;
 };
 
-export function insertQuestions(rows: SeedQuestion[]) {
+function defaultPay(kind: BankQuestion['kind']): { reward: number; penalty: number } {
+  if (kind === 'riddle') return { reward: 20, penalty: 5 };
+  return { reward: 10, penalty: 5 };
+}
+
+export function insertQuestions(rows: BankQuestion[]) {
   const db = getDb();
   const stmt = db.prepare(`
-    INSERT OR IGNORE INTO questions (kind, lang, difficulty, title, options, answer, tag)
-    VALUES (:kind, :lang, :difficulty, :title, :options, :answer, :tag)
+    INSERT OR IGNORE INTO questions (kind, lang, difficulty, title, options, answer, tag, reward, penalty)
+    VALUES (:kind, :lang, :difficulty, :title, :options, :answer, :tag, :reward, :penalty)
   `);
   let n = 0;
   for (const r of rows) {
-    if (stmt.run({ kind: r.kind, lang: r.lang, difficulty: r.difficulty, title: r.title, options: JSON.stringify(r.options), answer: r.answer, tag: r.tag ?? null })) n++;
+    const pay = defaultPay(r.kind);
+    const info = stmt.run({
+      kind: r.kind,
+      lang: r.lang,
+      difficulty: r.difficulty,
+      title: r.title,
+      options: JSON.stringify(r.options),
+      answer: r.answer,
+      tag: r.tag ?? null,
+      reward: r.reward ?? pay.reward,
+      penalty: r.penalty ?? pay.penalty,
+    });
+    if (info.changes) n++;
   }
   return n;
 }
 
+export interface StoredQuestion {
+  id: number;
+  kind: 'riddle' | 'knowledge' | 'math';
+  lang: string;
+  difficulty: string;
+  title: string;
+  options: string[];
+  answer: number;
+  tag: string | null;
+  reward: number;
+  penalty: number;
+}
+
+export function listQuestions(filter: { lang?: string; kind?: string } = {}): StoredQuestion[] {
+  const db = getDb();
+  const where: string[] = [];
+  const args: string[] = [];
+  if (filter.lang) { where.push('lang = ?'); args.push(filter.lang); }
+  if (filter.kind) { where.push('kind = ?'); args.push(filter.kind); }
+  const sql = `SELECT id, kind, lang, difficulty, title, options, answer, tag, reward, penalty FROM questions ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY id DESC`;
+  const rows = db.prepare(sql).all(...args) as Array<Omit<StoredQuestion, 'options'> & { options: string }>;
+  return rows.map((r) => ({ ...r, options: JSON.parse(r.options) }));
+}
+
+export function addQuestion(row: BankQuestion): StoredQuestion {
+  const db = getDb();
+  const pay = defaultPay(row.kind);
+  const info = db.prepare(`
+    INSERT INTO questions (kind, lang, difficulty, title, options, answer, tag, reward, penalty)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    row.kind, row.lang, row.difficulty, row.title.trim(), JSON.stringify(row.options.map((o) => o.trim())),
+    row.answer, row.tag ?? null, row.reward ?? pay.reward, row.penalty ?? pay.penalty,
+  );
+  return listQuestions().find((q) => q.id === Number(info.lastInsertRowid))!;
+}
+
 export function seedAll(): number {
-  const zh: SeedQuestion[] = [
+  const math: BankQuestion[] = [
+    { kind: 'math', lang: 'zh_CN', difficulty: 'small', title: '3 + 4 = ?', options: ['6', '7', '8'], answer: 1, reward: 10, penalty: 5, tag: 'add' },
+    { kind: 'math', lang: 'zh_CN', difficulty: 'small', title: '9 - 2 = ?', options: ['7', '6', '11'], answer: 0, reward: 10, penalty: 5, tag: 'sub' },
+    { kind: 'math', lang: 'zh_CN', difficulty: 'big', title: '12 + 15 = ?', options: ['26', '27', '28'], answer: 1, reward: 15, penalty: 8, tag: 'add' },
+    { kind: 'math', lang: 'en', difficulty: 'small', title: '3 + 4 = ?', options: ['6', '7', '8'], answer: 1, reward: 10, penalty: 5, tag: 'add' },
+    { kind: 'math', lang: 'en', difficulty: 'small', title: '9 - 2 = ?', options: ['7', '6', '11'], answer: 0, reward: 10, penalty: 5, tag: 'sub' },
+    { kind: 'math', lang: 'en', difficulty: 'big', title: '12 + 15 = ?', options: ['26', '27', '28'], answer: 1, reward: 15, penalty: 8, tag: 'add' },
+    { kind: 'math', lang: 'de', difficulty: 'small', title: '3 + 4 = ?', options: ['6', '7', '8'], answer: 1, reward: 10, penalty: 5, tag: 'add' },
+    { kind: 'math', lang: 'de', difficulty: 'small', title: '9 - 2 = ?', options: ['7', '6', '11'], answer: 0, reward: 10, penalty: 5, tag: 'sub' },
+    { kind: 'math', lang: 'de', difficulty: 'big', title: '12 + 15 = ?', options: ['26', '27', '28'], answer: 1, reward: 15, penalty: 8, tag: 'add' },
+  ];
+  const zh: BankQuestion[] = [
     { kind: 'riddle', lang: 'zh_CN', difficulty: 'small', title: '圆圆的月亮', options: ['太阳', '月亮', '星星'], answer: 1, tag: 'moon' },
     { kind: 'riddle', lang: 'zh_CN', difficulty: 'small', title: '夜空中最亮的灯笼', options: ['灯笼', '月亮', '太阳'], answer: 1, tag: 'moon' },
     { kind: 'riddle', lang: 'zh_CN', difficulty: 'small', title: '嫦娥抱着小玉兔', options: ['月亮上的兔子', '地球上的兔子', '天上飞的兔子'], answer: 0, tag: 'rabbit' },
@@ -39,7 +107,7 @@ export function seedAll(): number {
     { kind: 'knowledge', lang: 'zh_CN', difficulty: 'big', title: '灯谜一般写在哪里？', options: ['桌子上', '地上', '灯笼上'], answer: 2, tag: 'riddle' },
     { kind: 'knowledge', lang: 'zh_CN', difficulty: 'big', title: '中秋节的"团圆"是什么意思？', options: ['家人聚在一起', '一个人玩', '去学校'], answer: 0, tag: 'reunion' },
   ];
-  const en: SeedQuestion[] = [
+  const en: BankQuestion[] = [
     { kind: 'riddle', lang: 'en', difficulty: 'small', title: 'Round and bright in the night sky', options: ['The sun', 'The moon', 'A star'], answer: 1, tag: 'moon' },
     { kind: 'riddle', lang: 'en', difficulty: 'small', title: 'Who is often said to fly to the moon?', options: ['Chang-e', 'A dog', 'A cat'], answer: 0, tag: 'chang-e' },
     { kind: 'riddle', lang: 'en', difficulty: 'small', title: 'What do families eat together on Mid-Autumn Festival?', options: ['Mooncakes', 'Burgers', 'Sandwiches'], answer: 0, tag: 'mooncake' },
@@ -53,7 +121,7 @@ export function seedAll(): number {
     { kind: 'knowledge', lang: 'en', difficulty: 'big', title: 'What do children write on lanterns?', options: ['Riddles', 'Math homework', 'Letters'], answer: 0, tag: 'riddle' },
     { kind: 'knowledge', lang: 'en', difficulty: 'big', title: 'How many mooncakes did this family traditionally eat?', options: ['Ten', 'One per person', 'One hundred'], answer: 1, tag: 'mooncake' },
   ];
-  const de: SeedQuestion[] = [
+  const de: BankQuestion[] = [
     { kind: 'riddle', lang: 'de', difficulty: 'small', title: 'Rund und hell am nächtlichen Himmel', options: ['Die Sonne', 'Der Mond', 'Ein Stern'], answer: 1, tag: 'mond' },
     { kind: 'riddle', lang: 'de', difficulty: 'small', title: 'Wer fliegt laut der Sage zum Mond?', options: ['Chang-e', 'Ein Hund', 'Eine Katze'], answer: 0, tag: 'chang-e' },
     { kind: 'riddle', lang: 'de', difficulty: 'small', title: 'Was essen die Familien beim Mondfest?', options: ['Burger', 'Mondkuchen', 'Sandwiches'], answer: 1, tag: 'mondkuchen' },
@@ -67,7 +135,7 @@ export function seedAll(): number {
     { kind: 'knowledge', lang: 'de', difficulty: 'big', title: 'Was schreiben Kinder während des Festes?', options: ['Rätsel', 'Matheaufgaben', 'Briefe'], answer: 0, tag: 'raetsel' },
     { kind: 'knowledge', lang: 'de', difficulty: 'big', title: 'Wie heißt "Mid-Autumn Festival" auf Deutsch?', options: ['Mitternacht', 'Mondfest', 'Laternenfest'], answer: 1, tag: 'datum' },
   ];
-  return insertQuestions([...zh, ...en, ...de]);
+  return insertQuestions([...zh, ...en, ...de, ...math, ...midAutumnQuestions()]);
 }
 
 // DB 支持的题库；空库时返回 fallback（种子未导入时也能玩）
@@ -77,7 +145,7 @@ export function getQuestionBank(): QuestionBank {
     nextQuestion(lang, kind, difficulty, usedIds) {
       const rows: any[] = db
         .prepare(
-          'SELECT id, title, options, answer FROM questions WHERE kind = ? AND lang = ? AND difficulty = ? ORDER BY id',
+          'SELECT id, title, options, answer, reward, penalty FROM questions WHERE kind = ? AND lang = ? AND difficulty = ? ORDER BY id',
         )
         .all(kind, lang, difficulty);
       const unused = rows.filter((r) => !usedIds.includes(r.id));
@@ -89,6 +157,8 @@ export function getQuestionBank(): QuestionBank {
         text: pick.title,
         options: JSON.parse(pick.options),
         answerIndex: pick.answer,
+        reward: pick.reward,
+        penalty: pick.penalty,
       };
     },
   };

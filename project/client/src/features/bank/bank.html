@@ -1,0 +1,73 @@
+<div class="bank">
+  <header>
+    <h1>{{ i18n.getT('bank.title') }}</h1>
+    <p>{{ i18n.getT('bank.intro') }}</p>
+  </header>
+
+  <section class="form">
+    <label>{{ i18n.getT('bank.kind') }}
+      <select [ngModel]="kind()" (ngModelChange)="kind.set($event); reload()">
+        <option value="knowledge">{{ i18n.getT('tiles.knowledge') }}</option>
+        <option value="math">{{ i18n.getT('tiles.math') }}</option>
+      </select>
+    </label>
+    <label>{{ i18n.getT('bank.lang') }}
+      <select [ngModel]="lang()" (ngModelChange)="lang.set($event); reload()">
+        <option value="zh_CN">{{ i18n.getT('lobby.langZh') }}</option>
+        <option value="en">{{ i18n.getT('lobby.langEn') }}</option>
+        <option value="de">{{ i18n.getT('lobby.langDe') }}</option>
+      </select>
+    </label>
+    <label>{{ i18n.getT('bank.difficulty') }}
+      <select [ngModel]="difficulty()" (ngModelChange)="difficulty.set($event)">
+        <option value="small">{{ i18n.getT('lobby.small') }}</option>
+        <option value="medium">{{ i18n.getT('lobby.medium') }}</option>
+        <option value="big">{{ i18n.getT('lobby.big') }}</option>
+      </select>
+    </label>
+    <label class="wide">{{ i18n.getT('bank.titleField') }}
+      <input [ngModel]="title()" (ngModelChange)="title.set($event)" />
+    </label>
+    <div class="opts">
+      <label *ngFor="let opt of options(); let i = index">
+        {{ i18n.getT('bank.options') }} {{ ['A','B','C'][i] }}
+        <input [ngModel]="opt" (ngModelChange)="setOption(i, $event)" />
+      </label>
+    </div>
+    <label>{{ i18n.getT('bank.answer') }}
+      <select [ngModel]="answer()" (ngModelChange)="answer.set(+$event)">
+        <option [ngValue]="0">A</option>
+        <option [ngValue]="1">B</option>
+        <option [ngValue]="2">C</option>
+      </select>
+    </label>
+    <label>{{ i18n.getT('bank.reward') }}
+      <input type="number" min="0" max="100" [ngModel]="reward()" (ngModelChange)="reward.set(+$event)" />
+    </label>
+    <label>{{ i18n.getT('bank.penalty') }}
+      <input type="number" min="0" max="100" [ngModel]="penalty()" (ngModelChange)="penalty.set(+$event)" />
+    </label>
+    <button type="button" class="save" (click)="save()">{{ i18n.getT('bank.save') }}</button>
+    @if (msg()) { <p class="ok">{{ msg() }}</p> }
+    @if (err()) { <p class="err">{{ err() }}</p> }
+  </section>
+
+  <section>
+    <h2>{{ i18n.getT('bank.list') }}</h2>
+    @if (rows().length === 0) {
+      <p>{{ i18n.getT('bank.empty') }}</p>
+    }
+    <ul>
+      @for (row of rows(); track row.id) {
+        <li>
+          <strong>{{ row.title }}</strong>
+          <span>{{ row.options[row.answer] }}</span>
+          <span>+{{ row.reward }} / -{{ row.penalty }}</span>
+          <span>{{ row.difficulty }}</span>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <button type="button" class="back" (click)="router.navigate(['/lobby'])">{{ i18n.getT('bank.back') }}</button>
+</div>

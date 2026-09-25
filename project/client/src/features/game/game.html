@@ -207,6 +207,7 @@
             <span class="qbadge knowledge" *ngIf="pendingQuestion()?.kind === 'knowledge'">💡 {{ i18n.getT('question.askKnowledge') }}</span>
           </div>
           <p class="qtext">{{ pendingQuestion()?.text }}</p>
+          <p class="qstakes">{{ i18n.getT('question.reward') }} +{{ pendingQuestion()?.reward ?? 0 }} · {{ i18n.getT('question.penalty') }} -{{ pendingQuestion()?.penalty ?? 0 }}</p>
           <div class="options">
             <button class="opt" *ngFor="let opt of getPendingOptions(); let oIdx = index" (click)="answer(oIdx)">
               <span class="opt-prefix">{{ ['A', 'B', 'C', 'D'][oIdx] }}</span>

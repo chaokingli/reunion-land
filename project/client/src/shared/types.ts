@@ -1,6 +1,6 @@
 // 共享类型（前端展示与服务器引擎一致）
 export type Lang = 'zh_CN' | 'en' | 'de';
-export type Difficulty = 'small' | 'big';
+export type Difficulty = 'small' | 'medium' | 'big';
 export type RoomMode = 'local' | 'online' | 'ai';
 export type PlayerKind = 'human' | 'ai';
 
@@ -23,6 +23,8 @@ export interface PendingQuestion {
   options: string[];
   answerIndex: number;
   tag?: string;
+  reward?: number;
+  penalty?: number;
 }
 
 export type Pending =

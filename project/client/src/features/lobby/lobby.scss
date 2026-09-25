@@ -266,6 +266,14 @@ select:focus, input:focus {
   box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
 }
 
+.start.ghost-link {
+  background: transparent;
+  color: #ffeaa7;
+  border: 2px solid rgba(255, 234, 167, 0.55);
+  border-bottom-width: 2px;
+  box-shadow: none;
+}
+
 .start:disabled {
   opacity: 0.5;
   cursor: not-allowed;

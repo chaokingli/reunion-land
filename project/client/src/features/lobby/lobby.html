@@ -43,6 +43,7 @@
       <span class="lbl">{{ i18n.getT('lobby.difficulty') }}</span>
       <select [ngModel]="difficulty()" (ngModelChange)="difficulty.set($event)">
         <option value="small">{{ i18n.getT('lobby.small') }}</option>
+        <option value="medium">{{ i18n.getT('lobby.medium') }}</option>
         <option value="big">{{ i18n.getT('lobby.big') }}</option>
       </select>
     </div>
@@ -72,6 +73,8 @@
       <button class="btn-sm" (click)="joinRoom()" [disabled]="joinCode().length === 0">{{ i18n.getT('lobby.join') }}</button>
     </section>
   }
+
+  <button class="start ghost-link" type="button" (click)="router.navigate(['/bank'])">{{ i18n.getT('bank.open') }}</button>
 
   <button class="start" [disabled]="creating()" (click)="start()">
     {{ creating() ? i18n.getT('common.loading') : i18n.getT('lobby.start') }}

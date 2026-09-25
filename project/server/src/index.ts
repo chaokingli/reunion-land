@@ -7,7 +7,7 @@ import { Server } from 'socket.io';
 import type { Server as IoServer } from 'socket.io';
 import { PORT, CLIENT_DIST, HAS_CLIENT_DIST } from './config.js';
 import { getDb } from './db/schema.js';
-import { seedAll } from './db/bank.js';
+import { addQuestion, listQuestions, seedAll, type BankQuestion } from './db/bank.js';
 import { RoomManager } from './rooms/manager.js';
 import type { NewGameConfig } from './engine/types.js';
 
@@ -38,7 +38,7 @@ app.post('/api/rooms', (req, res) => {
   const players = data?.players;
   if (!data) errors.push('no data');
   if (errors.length === 0 && (!mode || !['local', 'online', 'ai'].includes(mode))) errors.push('invalid mode');
-  if (errors.length === 0 && (!difficulty || !['small', 'big'].includes(difficulty))) errors.push('invalid difficulty');
+  if (errors.length === 0 && (!difficulty || !['small', 'medium', 'big'].includes(difficulty))) errors.push('invalid difficulty');
   if (errors.length === 0 && (!Array.isArray(players) || players.length < 2 || players.length > 4)) errors.push('need 2-4 players');
   if (errors.length > 0) {
     res.status(400).json({ error: errors.join('; ') });
@@ -48,6 +48,58 @@ app.post('/api/rooms', (req, res) => {
     const config: NewGameConfig = { mode, difficulty, players };
     const room = manager.createRoom(config);
     res.json({ roomId: room.id, mode: room.state.mode });
+  } catch (e) {
+    res.status(400).json({ error: String(e) });
+  }
+});
+
+app.get('/api/questions', (req, res) => {
+  const lang = typeof req.query.lang === 'string' ? req.query.lang : undefined;
+  const kind = typeof req.query.kind === 'string' ? req.query.kind : undefined;
+  res.json({ questions: listQuestions({ lang, kind }) });
+});
+
+app.post('/api/questions', (req, res) => {
+  const body = req.body as Partial<BankQuestion> | undefined;
+  const kind = body?.kind;
+  const lang = body?.lang;
+  const difficulty = body?.difficulty;
+  const title = typeof body?.title === 'string' ? body.title.trim() : '';
+  const options = Array.isArray(body?.options) ? body.options.map((o) => String(o).trim()).filter((o) => o.length > 0) : [];
+  const answer = body?.answer;
+  const reward = body?.reward;
+  const penalty = body?.penalty;
+  if (kind !== 'knowledge' && kind !== 'math' && kind !== 'riddle') {
+    res.status(400).json({ error: 'kind' });
+    return;
+  }
+  if (lang !== 'zh_CN' && lang !== 'en' && lang !== 'de') {
+    res.status(400).json({ error: 'lang' });
+    return;
+  }
+  if (difficulty !== 'small' && difficulty !== 'medium' && difficulty !== 'big') {
+    res.status(400).json({ error: 'difficulty' });
+    return;
+  }
+  if (!title || options.length < 2 || options.length > 4) {
+    res.status(400).json({ error: 'title or options' });
+    return;
+  }
+  if (typeof answer !== 'number' || !Number.isInteger(answer) || answer < 0 || answer >= options.length) {
+    res.status(400).json({ error: 'answer' });
+    return;
+  }
+  if (typeof reward !== 'number' || !Number.isInteger(reward) || reward < 0 || reward > 100) {
+    res.status(400).json({ error: 'reward' });
+    return;
+  }
+  if (typeof penalty !== 'number' || !Number.isInteger(penalty) || penalty < 0 || penalty > 100) {
+    res.status(400).json({ error: 'penalty' });
+    return;
+  }
+  try {
+    const saved = addQuestion({ kind, lang, difficulty, title, options, answer, reward, penalty });
+    res.status(201).json({ question: saved });
   } catch (e) {
     res.status(400).json({ error: String(e) });
   }

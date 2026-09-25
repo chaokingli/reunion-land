@@ -125,12 +125,26 @@ describe('QUESTION 流程（直接设 pending，模拟落到答题格）', () =>
     expect(state.pending).toEqual({ kind: 'none' });
   });
 
-  it('riddle 答错 +0，不惩罚', () => {
+  it('riddle 答错扣默认惩罚', () => {
     const s = createGame(baseConfig);
     s.turn = 0;
     s.pending = { kind: 'question', question: { qid: 1, kind: 'riddle', text: 'x', options: ['A', 'B', 'C'], answerIndex: 1 } };
     const { state } = run(s, { type: 'ANSWER', player: 0, payload: { choice: 0 } });
-    expect(state.players[0].coins).toBe(100);
+    expect(state.players[0].coins).toBe(95);
+  });
+
+  it('题目自带奖惩：答对加奖励，答错扣惩罚且不低于 0', () => {
+    const wrongGame = createGame(baseConfig);
+    wrongGame.players[0].coins = 3;
+    wrongGame.pending = { kind: 'question', question: { qid: 2, kind: 'knowledge', text: 'x', options: ['A', 'B'], answerIndex: 0, reward: 12, penalty: 9 } };
+    const wrong = run(wrongGame, { type: 'ANSWER', player: 0, payload: { choice: 1 } });
+    expect(wrong.state.players[0].coins).toBe(0);
+    expect(wrong.events[0].amount).toBe(9);
+    const rightGame = createGame(baseConfig);
+    rightGame.pending = { kind: 'question', question: { qid: 3, kind: 'math', text: '1+1', options: ['2', '3'], answerIndex: 0, reward: 12, penalty: 9 } };
+    const right = run(rightGame, { type: 'ANSWER', player: 0, payload: { choice: 0 } });
+    expect(right.state.players[0].coins).toBe(112);
+    expect(right.events[0].amount).toBe(12);
   });
 
   it('math 答对 +10', () => {
@@ -172,7 +186,7 @@ describe('QUESTION 流程（直接设 pending，模拟落到答题格）', () =>
     const q = (s2.pending as any).question;
     const wrong = q.answerIndex === 0 ? 1 : 0;
     const { state: s3 } = run(s2, { type: 'ANSWER', player: 0, payload: { choice: wrong } });
-    expect(s3.players[0].coins).toBe(100);
+    expect(s3.players[0].coins).toBe(95);
   });
 });
 

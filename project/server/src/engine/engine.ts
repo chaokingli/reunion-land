@@ -46,7 +46,7 @@ function ev(
 
 // ---------- 数学题（运行时生成，选项确定性乱序） ----------
 function makeMathQuestion(state: GameState): MathQuestion {
-  const max = state.difficulty === 'small' ? 15 : 40;
+  const max = state.difficulty === 'small' ? 15 : state.difficulty === 'medium' ? 25 : 40;
   const [ra, s1] = lcgStep(state.seed);
   const [rb, s2] = lcgStep(s1);
   const a = 1 + Math.floor(ra * max);
@@ -73,7 +73,15 @@ function makeMathQuestion(state: GameState): MathQuestion {
     text: `${a} + ${b} = ?`,
     options,
     answerIndex: options.indexOf(String(answer)),
+    reward: RULES.mathReward,
+    penalty: RULES.mathPenalty,
   };
+}
+
+function questionPayout(q: { kind: string; reward?: number; penalty?: number }): { reward: number; penalty: number } {
+  const reward = q.reward ?? (q.kind === 'riddle' ? RULES.riddleReward : q.kind === 'math' ? RULES.mathReward : RULES.knowledgeReward);
+  const penalty = q.penalty ?? (q.kind === 'riddle' ? RULES.riddlePenalty : q.kind === 'math' ? RULES.mathPenalty : RULES.knowledgePenalty);
+  return { reward, penalty };
 }
 
 // ---------- 胜负与回合结束 ----------
@@ -139,25 +147,20 @@ function continueTile(state: GameState, bank: QuestionBank, events: GameEvent[])
         break;
       }
       case 'riddle':
-      case 'knowledge': {
-        const q = bank.nextQuestion(p.lang, t.kind, state.difficulty, p.askedQuestionIds);
+      case 'knowledge':
+      case 'math': {
+        const fromBank = bank.nextQuestion(p.lang, t.kind, state.difficulty, p.askedQuestionIds);
+        const q = fromBank ?? (t.kind === 'math' ? makeMathQuestion(state) : null);
         if (q) {
           p.askedQuestionIds.push(q.qid);
           state.pending = { kind: 'question', question: q };
           events.push(ev('QUESTION_REQUIRED', player, 'question.required', { question: q, tile }));
           return false;
         }
-        const reward = t.kind === 'riddle' ? RULES.riddleReward : RULES.knowledgeReward;
+        const reward = t.kind === 'riddle' ? RULES.riddleReward : t.kind === 'math' ? RULES.mathReward : RULES.knowledgeReward;
         p.coins += reward;
         events.push(ev('BONUS_COINS', player, 'board.bonus', { amount: reward, tag: t.kind, tile }));
         break;
-      }
-      case 'math': {
-        const q = makeMathQuestion(state);
-        p.askedQuestionIds.push(q.qid);
-        state.pending = { kind: 'question', question: q };
-        events.push(ev('QUESTION_REQUIRED', player, 'question.required', { question: q, tile }));
-        return false;
       }
       case 'moonview':
       case 'feast': {
@@ -282,16 +285,16 @@ export function processAction(
       }
       const q = state.pending.question;
       const correct = choice === q.answerIndex;
-      const reward = correct
-        ? (q.kind === 'riddle' ? RULES.riddleReward : RULES.knowledgeReward)
-        : 0;
-      p.coins += reward;
+      const pay = questionPayout(q);
+      const amount = correct ? pay.reward : pay.penalty;
+      if (correct) p.coins += pay.reward;
+      else p.coins = Math.max(0, p.coins - pay.penalty);
       state.pending = { kind: 'none' };
       events.push(
         ev('QUESTION_ANSWERED', action.player, correct ? 'question.correct' : 'question.wrong', {
           choice,
           correct,
-          amount: reward,
+          amount,
           option: q.options[choice],
           question: q,
         }),

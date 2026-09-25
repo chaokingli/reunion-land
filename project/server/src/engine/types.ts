@@ -1,5 +1,5 @@
 export type Lang = 'zh_CN' | 'en' | 'de';
-export type Difficulty = 'small' | 'big';
+export type Difficulty = 'small' | 'medium' | 'big';
 export type RoomMode = 'local' | 'online' | 'ai';
 export type QuestionKind = 'riddle' | 'knowledge' | 'math';
 export type PlayerKind = 'human' | 'ai';
@@ -24,6 +24,8 @@ export interface PendingQuestion {
   options: string[];
   answerIndex: number;
   tag?: string;
+  reward?: number;
+  penalty?: number;
 }
 
 // 数学题也走 question 流程；kind 标记为 'math'（text/ options 是数字字符串）
@@ -33,6 +35,8 @@ export interface MathQuestion {
   text: string;
   options: string[];
   answerIndex: number;
+  reward?: number;
+  penalty?: number;
 }
 
 export type PendingQuestionOrMath = PendingQuestion | MathQuestion;
@@ -72,10 +76,10 @@ export interface NewGameConfig {
 export interface QuestionBank {
   nextQuestion(
     lang: Lang,
-    kind: 'riddle' | 'knowledge',
+    kind: 'riddle' | 'knowledge' | 'math',
     difficulty: Difficulty,
     usedIds: number[],
-  ): PendingQuestion | null;
+  ): PendingQuestionOrMath | null;
 }
 
 export type GameEventType =

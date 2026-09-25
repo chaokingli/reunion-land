@@ -189,7 +189,7 @@ export class GameComponent implements OnDestroy {
     if (ev.type === 'DICE_ROLLED') return 'info';
     if (ev.type === 'WIN') return 'win';
     if (ev.type === 'TIME_UP') return ev.win ? 'win' : 'info';
-    if (ev.type === 'QUESTION_ANSWERED' && (ev.correct ?? false)) return 'bonus';
+    if (ev.type === 'QUESTION_ANSWERED') return ev.correct ? 'bonus' : 'lose';
     if (ev.type === 'RENT' || ev.type === 'LANTERN_BOUGHT') return 'lose';
     return 'info';
   }

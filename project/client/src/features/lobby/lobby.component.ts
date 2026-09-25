@@ -20,7 +20,7 @@ export class LobbyComponent {
 
   protected mode = signal<'local' | 'online'>('local');
   protected count = signal<2 | 3 | 4>(2);
-  protected difficulty = signal<'small' | 'big'>('small');
+  protected difficulty = signal<'small' | 'medium' | 'big'>('small');
   protected players = signal<PlayerDraft[]>([
     { name: 'Player 1', lang: 'zh_CN', kind: 'human', avatar: '🐰' },
     { name: 'Player 2', lang: 'zh_CN', kind: 'human', avatar: '🌟' },
