@@ -22,6 +22,8 @@ export class Gateway {
   readonly connected = signal(false);
   readonly error = signal<string>('');
   readonly joined = signal<GameState | null>(null);
+  /** 在线房间：已入座的人类座位、需要的人类人数、房间状态 */
+  readonly roster = signal<{ seated: number[]; need: number; status: string } | null>(null);
 
   #roomId = '';
   #myIndex = -1;
@@ -39,11 +41,18 @@ export class Gateway {
         this.events.set(m.events ?? null);
       }
     });
-    ws.on('joined', (d: { roomId: string; state: GameState }) => {
+    ws.on('joined', (d: { roomId: string; state: GameState; playerIdx?: number; seated?: number[]; need?: number; status?: string }) => {
       this.state.set(d.state);
       this.joined.set(d.state);
       this.#roomId = d.roomId;
+      if (typeof d.playerIdx === 'number' && d.playerIdx >= 0) this.#myIndex = d.playerIdx;
+      if (d.seated && typeof d.need === 'number' && d.status) {
+        this.roster.set({ seated: d.seated, need: d.need, status: d.status });
+      }
       this.connected.set(true);
+    });
+    ws.on('roster', (d: { seated: number[]; need: number; status: string }) => {
+      if (d && Array.isArray(d.seated)) this.roster.set(d);
     });
     ws.on('act_error', (e: { error: string }) => this.error.set(e.error));
     ws.on('join_error', (e: { error: string }) => this.error.set(e.error));

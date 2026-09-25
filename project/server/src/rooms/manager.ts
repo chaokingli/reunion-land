@@ -50,12 +50,20 @@ export class RoomManager {
     if (room.status === 'finished') throw new Error('game finished');
     // 未指定座次（undefined 或 -1）：自动分配第一个空闲席（在线双人用）
     let idx = data.playerIdx;
+    const taken = new Set(
+      [...room.sockets.entries()].filter(([id]) => id !== socket.id).map(([, e]) => e.playerIdx),
+    );
+    const n = room.state.players.length;
     if (idx === undefined || idx === -1) {
-      const taken = new Set([...room.sockets.values()].map((e) => e.playerIdx));
-      for (let i = 0; i < room.state.players.length; i++) if (!taken.has(i)) { idx = i; break; }
+      idx = undefined;
+      for (let i = 0; i < n; i++) {
+        if (!taken.has(i) && room.state.players[i].kind === 'human') { idx = i; break; }
+      }
       if (idx === undefined) throw new Error('room full');
     }
-    if (idx < 0 || idx >= 4) throw new Error('invalid player index');
+    if (idx < 0 || idx >= n) throw new Error('invalid player index');
+    if (room.state.players[idx].kind !== 'human') throw new Error('seat is ai');
+    if (taken.has(idx)) throw new Error('seat taken');
     room.sockets.set(socket.id, { playerIdx: idx });
     // 加入 socket.io 房间，只接收本房间的 state
     socket.join(`room:${room.id}`);
@@ -67,7 +75,19 @@ export class RoomManager {
       }
     }
     this.emitState(room);
+    this.emitRoster(room);
     return room;
+  }
+
+  /** 在线入座进度：已连接的人类座位。 */
+  rosterOf(room: RoomInfo): { seated: number[]; need: number; status: RoomInfo['status'] } {
+    const seated = [...new Set([...room.sockets.values()].map((e) => e.playerIdx))].sort((a, b) => a - b);
+    const need = room.state.players.filter((p) => p.kind === 'human').length;
+    return { seated, need, status: room.status };
+  }
+
+  private emitRoster(room: RoomInfo): void {
+    this.server.to(`room:${room.id}`).emit('roster', this.rosterOf(room));
   }
 
   leaveSocket(socket: Socket): void {
@@ -78,7 +98,10 @@ export class RoomManager {
         if (p && p.kind === 'human') {
           p.kind = 'ai';
           this.emitState(room);
+          this.emitRoster(room);
           this.maybeAiAct(room);
+        } else {
+          this.emitRoster(room);
         }
         break;
       }

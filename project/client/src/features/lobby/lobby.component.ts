@@ -18,7 +18,8 @@ export class LobbyComponent {
   protected gw = inject(Gateway);
   protected i18n = inject(I18nService);
 
-  protected mode = signal<'local' | 'online' | 'ai'>('local');
+  protected mode = signal<'local' | 'online'>('local');
+  protected count = signal<2 | 3 | 4>(2);
   protected difficulty = signal<'small' | 'big'>('small');
   protected players = signal<PlayerDraft[]>([
     { name: 'Player 1', lang: 'zh_CN', kind: 'human', avatar: '🐰' },
@@ -41,7 +42,12 @@ export class LobbyComponent {
   protected start() {
     const mode = this.mode();
     const players = this.players();
+    const mySeat = players.findIndex((p) => p.kind === 'human');
     this.errMsg.set('');
+    if (mySeat < 0) {
+      this.errMsg.set(this.i18n.getT('lobby.needHuman'));
+      return;
+    }
     this.creating.set(true);
     this.gw
       .createRoom(mode, this.difficulty(), players.map((p) => ({ ...p, avatar: p.avatar })))
@@ -50,21 +56,14 @@ export class LobbyComponent {
         if (mode === 'local') {
           this.gw.join(r.roomId, 0);
           this.router.navigate(['/game']);
-        } else if (mode === 'online') {
-          this.joinedRoom.set(true);
-          this.gw.join(r.roomId, 0); // 玩家 1 作为 seat 0 入局，等待玩家 2
-          this.onlineReady.set(true);
-          // 不跳转，留在大厅展示房间码（让玩家1 把码发给玩家2）
         } else {
-          // ai 模式：客户端作为 human 玩家 0，AI 是 1
-          this.gw.join(r.roomId, 0);
-          this.router.navigate(['/game']);
+          this.joinedRoom.set(true);
+          this.gw.join(r.roomId, mySeat);
+          this.onlineReady.set(true);
         }
         this.creating.set(false);
-        // 创建成功后重置
       })
       .catch((e) => { this.errMsg.set(e.message); this.creating.set(false); });
-    return;
   }
 
   // 玩家1 把房间码发给对手后，进入房间
@@ -82,25 +81,38 @@ export class LobbyComponent {
     this.router.navigate(['/game']);
   }
 
-  protected addPlayer() {
-    if (this.players().length < 4) {
-      const lang = this.players()[0]?.lang ?? this.locale();
-      this.players.update((p) => [...p, { name: 'Player ' + (p.length + 1), lang: lang as any, kind: 'human', avatar: p.length % 4 === 0 ? '🍁' : '🌙' }]);
-    }
-    this.changeMode();
+  protected setCount(n: number) {
+    const size = (n === 3 || n === 4 ? n : 2) as 2 | 3 | 4;
+    this.count.set(size);
+    const lang = (this.players()[0]?.lang ?? this.locale()) as PlayerDraft['lang'];
+    const avatars = ['🐰', '🌟', '🌙', '🍁'];
+    this.players.update((cur) => {
+      const next = cur.slice(0, size);
+      while (next.length < size) {
+        const i = next.length;
+        next.push({ name: 'Player ' + (i + 1), lang, kind: 'human', avatar: avatars[i] });
+      }
+      return next;
+    });
   }
 
-  // 切换模式时，自动把第 1 位之后的玩家设为 AI（兔姐）
-  protected changeMode() {
-    this.players.update((p) => p.map((q, i) => (i >= 1 && this.mode() === 'ai' ? { ...q, kind: 'ai' } : q)));
+  protected setKind(i: number, kind: 'human' | 'ai') {
+    this.players.update((p) => p.map((q, idx) => (idx === i ? { ...q, kind } : q)));
   }
-  // 切换玩家类型为 AI（兔姐）/ 人类
-  protected toggleKind(i: number) {
-    this.players.update((p) => p.map((q, idx) => (idx === i ? { ...q, kind: q.kind === 'ai' ? 'human' : 'ai' } : q)));
+
+  protected humanCount(): number {
+    return this.players().filter((p) => p.kind === 'human').length;
   }
-  protected rmPlayer(i: number) {
-    if (this.players().length > 2) this.players.update((p) => p.filter((_, idx) => idx !== i));
+
+  protected seatedCount(): number {
+    return this.gw.roster()?.seated.length ?? (this.onlineReady() ? 1 : 0);
   }
+
+  protected allSeated(): boolean {
+    const r = this.gw.roster();
+    return !!r && r.seated.length >= r.need && r.need > 0;
+  }
+
   protected setLang(i: number, lang: any) {
     this.players.update((p) => p.map((q, idx) => (idx === i ? { ...q, lang } : q)));
   }

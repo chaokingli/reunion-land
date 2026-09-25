@@ -80,7 +80,8 @@ io.on('connection', (socket) => {
   socket.on('join', (data: { roomId: string; playerIdx: number }) => {
     try {
       const room = manager.joinSocket(socket, data);
-      socket.emit('joined', { roomId: room.id, state: room.state });
+      const mine = room.sockets.get(socket.id)?.playerIdx ?? -1;
+      socket.emit('joined', { roomId: room.id, state: room.state, playerIdx: mine, ...manager.rosterOf(room) });
     } catch (e) {
       socket.emit('join_error', { error: String(e) });
     }

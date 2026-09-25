@@ -26,10 +26,17 @@
   <section class="cfg">
     <div class="field">
       <span class="lbl">{{ i18n.getT('lobby.mode') }}</span>
-      <select [ngModel]="mode()" (ngModelChange)="mode.set($event); changeMode()">
+      <select [ngModel]="mode()" (ngModelChange)="mode.set($event)">
         <option value="local">{{ i18n.getT('lobby.modeLocal') }}</option>
         <option value="online">{{ i18n.getT('lobby.modeOnline') }}</option>
-        <option value="ai">{{ i18n.getT('lobby.modeAI') }}</option>
+      </select>
+    </div>
+    <div class="field">
+      <span class="lbl">{{ i18n.getT('lobby.playersCount') }}</span>
+      <select [ngModel]="count()" (ngModelChange)="setCount(+$event)">
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
       </select>
     </div>
     <div class="field">
@@ -42,13 +49,12 @@
   </section>
 
   <section class="players">
-    <button class="add" (click)="addPlayer()" [disabled]="players().length >= 4">{{ i18n.getT('lobby.2') }}</button>
     <div class="player-row" *ngFor="let p of players(); let i = index">
-      <button class="rm" (click)="rmPlayer(i)" [disabled]="players().length <= 2">✕</button>
       <input class="name" placeholder="{{ i18n.getT('lobby.name' + (i + 1)) }}" [ngModel]="p.name" (ngModelChange)="setName(i, $event)" />
-      <button class="kind" [class.ai]="p.kind === 'ai'" (click)="toggleKind(i)" [title]="p.kind === 'ai' ? i18n.getT('lobby.kindAI') : i18n.getT('lobby.kindHuman')">
-        {{ p.kind === 'ai' ? '🤖' : '👤' }}
-      </button>
+      <select [ngModel]="p.kind" (ngModelChange)="setKind(i, $event)">
+        <option value="human">{{ i18n.getT('lobby.kindHuman') }}</option>
+        <option value="ai">{{ i18n.getT('lobby.kindAI') }}</option>
+      </select>
       <select [ngModel]="p.lang" (ngModelChange)="setLang(i, $event)">
         <option value="zh_CN">{{ i18n.getT('lobby.langZh') }}</option>
         <option value="en">{{ i18n.getT('lobby.langEn') }}</option>
@@ -76,7 +82,9 @@
       <span>{{ i18n.getT('lobby.roomCode') }}</span>
       <code class="code">{{ roomCode() }}</code>
       @if (onlineReady()) {
-        <button class="btn-sm" (click)="enterOnlineGame()">{{ i18n.getT('lobby.enterGame') }}</button>
+        <p class="wait">{{ i18n.getT('lobby.seated') }} {{ seatedCount() }} / {{ humanCount() }}</p>
+        <p class="wait">{{ i18n.getT('lobby.shareDevices') }}</p>
+        <button class="btn-sm" (click)="enterOnlineGame()" [disabled]="!allSeated()">{{ i18n.getT('lobby.enterGame') }}</button>
       }
     </section>
   }

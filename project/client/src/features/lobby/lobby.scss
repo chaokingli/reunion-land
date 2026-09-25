@@ -91,7 +91,7 @@ header {
 }
 
 .field { flex: 1; }
-.cfg { display: flex; gap: 16px; }
+.cfg { display: flex; flex-wrap: wrap; gap: 16px; }
 
 select, input {
   width: 100%;
@@ -149,6 +149,30 @@ select:focus, input:focus {
 .player-row input { flex: 1; }
 .player-row select { width: 130px; }
 
+.presets {
+  margin: 8px 0 16px;
+}
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.preset-row button, .wait {
+  font: inherit;
+}
+.preset-row button {
+  background: rgba(255, 211, 42, 0.12);
+  color: #ffeaa7;
+  border: 1px solid rgba(255, 211, 42, 0.45);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.wait {
+  margin: 6px 0;
+  color: #ffeaa7;
+}
 .add, .rm {
   border-radius: 12px;
   cursor: pointer;
