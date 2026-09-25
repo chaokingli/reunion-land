@@ -15,7 +15,7 @@
   <section class="cfg">
     <div class="field">
       <span class="lbl">{{ i18n.getT('lobby.mode') }}</span>
-      <select [ngModel]="mode()" (ngModelChange)="mode.set($event)">
+      <select [ngModel]="mode()" (ngModelChange)="mode.set($event); changeMode()">
         <option value="local">{{ i18n.getT('lobby.modeLocal') }}</option>
         <option value="online">{{ i18n.getT('lobby.modeOnline') }}</option>
         <option value="ai">{{ i18n.getT('lobby.modeAI') }}</option>

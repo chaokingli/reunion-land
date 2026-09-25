@@ -87,6 +87,12 @@ export class LobbyComponent {
       const lang = this.players()[0]?.lang ?? this.locale();
       this.players.update((p) => [...p, { name: 'Player ' + (p.length + 1), lang: lang as any, kind: 'human', avatar: p.length % 4 === 0 ? '🍁' : '🌙' }]);
     }
+    this.changeMode();
+  }
+
+  // 切换模式时，自动把第 1 位之后的玩家设为 AI（兔姐）
+  protected changeMode() {
+    this.players.update((p) => p.map((q, i) => (i >= 1 && this.mode() === 'ai' ? { ...q, kind: 'ai' } : q)));
   }
   // 切换玩家类型为 AI（兔姐）/ 人类
   protected toggleKind(i: number) {

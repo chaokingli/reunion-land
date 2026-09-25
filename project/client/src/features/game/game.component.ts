@@ -4,8 +4,12 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Gateway } from '../../core/gateway';
 import { I18nService } from '../../i18n/i18n.service';
+import { SoundService } from '../../core/sound.service';
 import { BOARD, cellAt, GRID_SIZE, type TileDef } from '../../shared/board';
 import type { GameState, GameEvent } from '../../shared/types';
+
+type Confetti = { id: number; left: string; size: number; color: string; delay: number; duration: number };
+const CONFETTI_COLORS = ['#ffd34d', '#ff5c5c', '#7c4dff', '#2979ff', '#00e07a', '#ffab00', '#ff7043', '#388e3c', '#433b93', '#d6262f', '#1565c0', '#2e7d32'];
 
 @Component({
   selector: 'app-game',
@@ -17,12 +21,19 @@ export class GameComponent {
   protected router = inject(Router);
   protected gw = inject(Gateway);
   protected i18n = inject(I18nService);
+  protected sound = inject(SoundService);
 
   protected state = signal<GameState | null>(null);
 
   protected diceValue = signal<number | null>(null);
   protected animMsg = signal<string>('');
   protected animKind = signal<'bonus' | 'info' | 'win' | 'lose'>('info');
+
+  // 动画：落子高亮（每次玩家移动时触发）
+  protected landedIds = signal<number[]>([]);
+  // 胜利彩带
+  protected confetti = signal<Confetti[]>([]);
+  protected confettiTimer: number | undefined = undefined;
 
   // 每格显示的格子 + 玩家棋子
   protected cells = computed(() => {
@@ -44,6 +55,8 @@ export class GameComponent {
     const s = this.state();
     return s?.players[s?.turn ?? 0]?.name ?? '';
   }
+  // 上一轮每个玩家位置，用于判断「谁移动了」从而播放落子动画
+  private prevPos: Record<number, number> = {};
   protected isMyTurn() {
     const s = this.state();
     if (!s || s.finished) return false;
@@ -117,30 +130,68 @@ export class GameComponent {
 
   rollDice() {
     if (!this.isMyTurn()) return;
+    this.sound.unlock();
+    this.sound.roll();
     this.gw.act('ROLL', { player: this.state()?.turn ?? 0 });
   }
   buy() {
     const p = this.currentPlayer();
-    if (p && p.coins >= 50) this.gw.act('BUY', { player: this.state()?.turn ?? 0 });
+    if (p && p.coins >= 50) {
+      this.sound.unlock();
+      this.sound.buy();
+      this.gw.act('BUY', { player: this.state()?.turn ?? 0 });
+    }
   }
-  skip() { this.gw.act('SKIP_BUY', { player: this.state()?.turn ?? 0 }); }
+  skip() {
+    this.sound.unlock();
+    this.gw.act('SKIP_BUY', { player: this.state()?.turn ?? 0 });
+  }
   answer(choice: number) {
+    this.sound.unlock();
     this.gw.act('ANSWER', { player: this.state()?.turn ?? 0, choice: choice as 0 | 1 | 2 });
   }
   hint() {
-    if (!this.currentPlayer()?.hintUsed) this.gw.act('HINT', { player: this.state()?.turn ?? 0 });
+    if (!this.currentPlayer()?.hintUsed) {
+      this.sound.unlock();
+      this.sound.hint();
+      this.gw.act('HINT', { player: this.state()?.turn ?? 0 });
+    }
   }
   playAgain() {
+    this.stopConfetti();
     this.gw.disconnect();
     this.router.navigate(['/lobby']);
   }
   backLobby() {
+    this.stopConfetti();
     this.gw.disconnect();
     this.router.navigate(['/lobby']);
   }
 
+  // 当游戏状态变化时判断谁移动了，触发落子动画 + 音效
+  private onStatePositionsChange() {
+    const s = this.state();
+    if (!s) return;
+    const landed: number[] = [];
+    for (const p of s.players) {
+      if (this.prevPos[p.id] !== undefined && this.prevPos[p.id] !== p.position) landed.push(p.id);
+      this.prevPos[p.id] = p.position;
+    }
+    if (landed.length) {
+      this.landedIds.set(landed);
+      if (this.landedTimer !== undefined) { clearTimeout(this.landedTimer); this.landedTimer = undefined; }
+      this.landedTimer = setTimeout(() => this.landedIds.set([]), 700);
+    }
+  }
+  private landedTimer: number | undefined = undefined;
+
   constructor() {
-    toObservable(this.gw.state).subscribe((s) => { this.state.set(s); });
+    toObservable(this.gw.state).subscribe((s) => {
+      this.state.set(s);
+      if (!s) return;
+      this.onStatePositionsChange();
+      if (s.finished) this.onWin();
+    });
     toObservable(this.gw.events).subscribe((evs) => {
       if (!evs || evs.length === 0) return;
       // 找 DICE_ROLLED 更新骰子显示
@@ -152,8 +203,82 @@ export class GameComponent {
       // 展示最后一件事件给动画/提示（问题/收益/胜利等）
       const ev = evs.at(-1) as GameEvent;
       if (ev.type !== 'DICE_ROLLED') {
+        this.playEventSound(ev);
         this.showMsg('events.' + ev.type, this.eventVars(ev), this.eventKind(ev));
       }
     });
+  }
+
+  // 根据事件播放对应音效
+  private playEventSound(ev: GameEvent): void {
+    const s = this.state();
+    const p = s?.players[ev.player];
+    switch (ev.type) {
+      case 'MOVED':
+        this.sound.unlock();
+        break;
+      case 'PASS_START':
+      case 'BONUS_COINS':
+        if (p) this.sound.bonus();
+        break;
+      case 'LANTERN_BOUGHT':
+        this.sound.unlock();
+        this.sound.buy();
+        break;
+      case 'LANTERN_SKIPPED':
+        this.sound.unlock();
+        this.sound.buy();
+        break;
+      case 'RENT':
+        this.sound.unlock();
+        this.sound.wrong();
+        break;
+      case 'QUESTION_ANSWERED':
+        this.sound.unlock();
+        this.sound.correct(); // 简化：答对答错都用正确音，儿童友好（无惩罚）
+        break;
+      case 'HINT':
+        this.sound.unlock();
+        this.sound.hint();
+        break;
+      case 'TURN_END':
+        this.sound.turn();
+        break;
+      case 'WIN':
+        this.sound.unlock();
+        this.sound.win();
+        break;
+      case 'TIME_UP':
+        if (ev.win) this.sound.win();
+        else this.sound.lose();
+        break;
+      default:
+        break;
+    }
+  }
+
+  // 胜利：播放彩带 + 结束音效
+  private onWin(): void {
+    const s = this.state();
+    if (!s?.finished) return;
+    this.sound.unlock();
+    this.sound.win();
+    // 生成彩带
+    const pieces: Confetti[] = Array.from({ length: 70 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100 + '%',
+      size: 8 + Math.random() * 8,
+      color: CONFETTI_COLORS[(i * 5) % CONFETTI_COLORS.length],
+      delay: Math.random() * 2,
+      duration: 3 + Math.random() * 2,
+    }));
+    this.confetti.set(pieces);
+    this.stopConfetti();
+  }
+  private stopConfetti(): void {
+    if (this.confettiTimer !== undefined) { clearTimeout(this.confettiTimer); this.confettiTimer = undefined; }
+    if (this.confetti().length) {
+      this.confettiTimer = setTimeout(() => this.confetti.set([]), 6000);
+    }
   }
 }

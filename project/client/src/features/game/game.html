@@ -20,6 +20,21 @@
     </div>
   </header>
 
+  <!-- 胜利彩带覆盖层 -->
+  <div class="confetti-wrap" *ngIf="confetti().length">
+    @for (c of confetti(); track c.id) {
+      <span
+        class="confetti-pc"
+        [style.left]="c.left"
+        [style.width]="c.size + 'px'"
+        [style.height]="c.size + 'px'"
+        [style.backgroundColor]="c.color"
+        [style.animationDelay]="c.delay + 's'"
+        [style.animationDuration]="c.duration + 's'">
+      </span>
+    }
+  </div>
+
   <div class="body">
     <!-- 棋盘 -->
     <div class="board">
@@ -35,7 +50,7 @@
             <span class="tile-label" *ngIf="cell.tiles.length === 1">{{ t.label }}</span>
           }
           @for (p of cell.pcs; track p.id) {
-            <span class="piece" [style.color]="pieceColor(p.id)" [class.big]="p.id === curTurn()"></span>
+            <span class="piece" [class.land]="landedIds().includes(p.id)" [style.color]="pieceColor(p.id)" [class.big]="p.id === curTurn()"></span>
           }
           @if (cell.tiles.length && cell.tiles[0]?.move !== undefined) {
             <span class="move-tag">{{ cell.tiles[0].move > 0 ? '+' + cell.tiles[0].move : cell.tiles[0].move }}</span>
