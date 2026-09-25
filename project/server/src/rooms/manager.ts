@@ -48,9 +48,9 @@ export class RoomManager {
     const room = this.getRoom(data.roomId);
     if (!room) throw new Error('room not found');
     if (room.status === 'finished') throw new Error('game finished');
-    // 未指定座次：自动分配第一个空闲席（在线双人用）
+    // 未指定座次（undefined 或 -1）：自动分配第一个空闲席（在线双人用）
     let idx = data.playerIdx;
-    if (idx === undefined) {
+    if (idx === undefined || idx === -1) {
       const taken = new Set([...room.sockets.values()].map((e) => e.playerIdx));
       for (let i = 0; i < room.state.players.length; i++) if (!taken.has(i)) { idx = i; break; }
       if (idx === undefined) throw new Error('room full');

@@ -29,6 +29,7 @@ export class LobbyComponent {
   protected errMsg = signal('');
   protected roomCode = signal('');
   protected joinedRoom = signal(false);
+  protected onlineReady = signal(false); // 在线：玩家1 建好房并等待玩家2
   protected locale = signal<'zh_CN' | 'en' | 'de'>('zh_CN');
   protected joinCode = signal('');
 
@@ -52,14 +53,24 @@ export class LobbyComponent {
         } else if (mode === 'online') {
           this.joinedRoom.set(true);
           this.gw.join(r.roomId, 0); // 玩家 1 作为 seat 0 入局，等待玩家 2
-          this.router.navigate(['/game']);
+          this.onlineReady.set(true);
+          // 不跳转，留在大厅展示房间码（让玩家1 把码发给玩家2）
         } else {
           // ai 模式：客户端作为 human 玩家 0，AI 是 1
           this.gw.join(r.roomId, 0);
           this.router.navigate(['/game']);
         }
+        this.creating.set(false);
+        // 创建成功后重置
       })
       .catch((e) => { this.errMsg.set(e.message); this.creating.set(false); });
+    return;
+  }
+
+  // 玩家1 把房间码发给对手后，进入房间
+  protected enterOnlineGame() {
+    if (!this.onlineReady()) return;
+    this.router.navigate(['/game']);
   }
 
   // 玩家 2：输入对方提供的房间码加入

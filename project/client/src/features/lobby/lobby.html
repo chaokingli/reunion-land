@@ -64,6 +64,9 @@
     <section class="roomcode">
       <span>{{ i18n.getT('lobby.roomCode') }}</span>
       <code class="code">{{ roomCode() }}</code>
+      @if (onlineReady()) {
+        <button class="btn-sm" (click)="enterOnlineGame()">{{ i18n.getT('lobby.enterGame') }}</button>
+      }
     </section>
   }
 </div>

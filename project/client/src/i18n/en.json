@@ -32,7 +32,8 @@
     "joinBtn": "Join",
     "langNote": "Questions are in this player's language",
     "kindAI": "AI player (Rabbit)",
-    "kindHuman": "Human player"
+    "kindHuman": "Human player",
+    "enterGame": "Enter Room"
   },
   "game": {
     "coins": "Moon Coins",

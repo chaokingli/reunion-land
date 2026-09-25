@@ -32,7 +32,8 @@
     "joinBtn": "加入",
     "langNote": "答题题目按本玩家语言出",
     "kindAI": "AI 玩家（兔姐）",
-    "kindHuman": "人类玩家"
+    "kindHuman": "人类玩家",
+    "enterGame": "进入房间"
   },
   "game": {
     "coins": "月亮币",

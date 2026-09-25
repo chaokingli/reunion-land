@@ -32,7 +32,8 @@
     "joinBtn": "Beitreten",
     "langNote": "Fragen in der Sprache dieses Spielers",
     "kindAI": "KI-Spieler (Hase)",
-    "kindHuman": "Menschlicher Spieler"
+    "kindHuman": "Menschlicher Spieler",
+    "enterGame": "Ins Spiel beitreten"
   },
   "game": {
     "coins": "Mondmünzen",
