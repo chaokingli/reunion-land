@@ -4,17 +4,40 @@
   <!-- 顶栏 -->
   <header class="top">
     <div class="title-wrap">
-      <h1 class="title">{{ i18n.getT('title') }}</h1>
-      <span class="turn-badge" *ngIf="!isFinished()">{{ i18n.getT('game.currentPlayer') }}: {{ currentTurn() }}</span>
+      <div class="brand">
+        <svg class="brand-moon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="14" fill="#FEEAA7"/>
+          <circle cx="13" cy="13" r="3" fill="#FDCB6E" opacity="0.4"/>
+          <circle cx="21" cy="18" r="2.5" fill="#FDCB6E" opacity="0.3"/>
+          <path d="M7 23C11 20 18 21 23 23" stroke="#FFF" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+        </svg>
+        <h1 class="title">{{ i18n.getT('title') }}</h1>
+      </div>
+      <span class="turn-badge" *ngIf="!isFinished()">
+        <span class="pulse-dot"></span>
+        {{ i18n.getT('game.currentPlayer') }}: <strong>{{ currentTurn() }}</strong>
+      </span>
     </div>
     <div class="scoreboard">
       @for (p of players(); track p.id) {
-        <div class="pbar" [class.curt]="p.id === curTurn()">
-          <span class="avatar">{{ p.avatar }}</span>
-          <div class="pname" [title]="p.name">{{ p.name }}</div>
-          <span class="coins">{{ i18n.getT('game.coins') }} {{ p.coins }}</span>
-          <span class="lanterns">{{ i18n.getT('game.lanterns') }} {{ p.lanterns }}/3</span>
-          <span class="pos">{{ i18n.getT('game.position') }} {{ p.position }}</span>
+        <div class="pbar" [class.curt]="p.id === curTurn()" [style.--p-color]="pieceColor(p.id)">
+          <div class="avatar-ring">
+            <span class="avatar">{{ p.avatar }}</span>
+          </div>
+          <div class="p-details">
+            <div class="pname" [title]="p.name">{{ p.name }}</div>
+            <div class="p-stats">
+              <span class="coins">
+                <svg viewBox="0 0 16 16" width="13" height="13" fill="none"><circle cx="8" cy="8" r="7" fill="#F1C40F"/><circle cx="8" cy="8" r="4.5" stroke="#D68910" stroke-width="1.2"/><rect x="6.5" y="6.5" width="3" height="3" fill="#B7950B"/></svg>
+                {{ p.coins }}
+              </span>
+              <span class="lanterns">
+                <svg viewBox="0 0 16 16" width="13" height="13" fill="none"><ellipse cx="8" cy="8" rx="5" ry="5.5" fill="#E74C3C"/><circle cx="8" cy="8" r="2" fill="#F9E79F"/><path d="M8 1V3M8 13V15" stroke="#D35400" stroke-width="1.2" stroke-linecap="round"/></svg>
+                {{ p.lanterns }}/3
+              </span>
+              <span class="pos">🚩 {{ p.position }}</span>
+            </div>
+          </div>
         </div>
       }
     </div>
@@ -38,22 +61,94 @@
   <div class="body">
     <!-- 棋盘 -->
     <div class="board">
+      <!-- 棋盘中央特色舞台 (2行到9行, 2列到9列) -->
+      <div class="center-stage">
+        <div class="center-bg-art">
+          <svg viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg" class="center-svg">
+            <defs>
+              <radialGradient id="center-moon-glow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#FFF9D2" stop-opacity="0.95"/>
+                <stop offset="60%" stop-color="#FFEAA7" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#FDCB6E" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="cloud-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.1"/>
+                <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.1"/>
+              </linearGradient>
+            </defs>
+            <!-- 柔和月轮 -->
+            <circle cx="100" cy="72" r="54" fill="url(#center-moon-glow)"/>
+            <circle cx="100" cy="72" r="36" fill="#FEEAA7" opacity="0.95"/>
+            <circle cx="88" cy="62" r="6" fill="#FDCB6E" opacity="0.3"/>
+            <circle cx="114" cy="80" r="8" fill="#FDCB6E" opacity="0.25"/>
+
+            <!-- 祥云环绕 -->
+            <path d="M20 108C35 98 52 100 62 110C72 102 90 104 100 112C112 104 135 106 145 118H20V108Z" fill="url(#cloud-grad)"/>
+            <path d="M100 48C112 40 130 42 140 50C150 44 165 46 172 54H100V48Z" fill="url(#cloud-grad)" opacity="0.5"/>
+
+            <!-- 萌态玉兔 -->
+            <g transform="translate(82, 50) scale(0.85)">
+              <rect x="30" y="28" width="12" height="13" rx="2.5" fill="#D35400"/>
+              <line x1="33" y1="16" x2="36" y2="30" stroke="#8E44AD" stroke-width="2.5" stroke-linecap="round"/>
+              <ellipse cx="16" cy="30" rx="12" ry="10" fill="#FFFFFF"/>
+              <ellipse cx="22" cy="18" rx="8" ry="7" fill="#FFFFFF"/>
+              <ellipse cx="17" cy="8" rx="3" ry="8" fill="#FFFFFF" transform="rotate(-15 17 8)"/>
+              <ellipse cx="17" cy="8" rx="1.5" ry="5" fill="#FFA5A5" transform="rotate(-15 17 8)"/>
+              <ellipse cx="24" cy="7" rx="3" ry="8" fill="#FFFFFF" transform="rotate(10 24 7)"/>
+              <ellipse cx="24" cy="7" rx="1.5" ry="5" fill="#FFA5A5" transform="rotate(10 24 7)"/>
+              <circle cx="23" cy="16" r="1.3" fill="#C0392B"/>
+              <circle cx="28" cy="19" r="2.5" fill="#FFC5C5" opacity="0.6"/>
+              <circle cx="5" cy="32" r="3.5" fill="#FFFFFF"/>
+            </g>
+
+            <!-- 闪烁微星 -->
+            <polygon points="35,32 37,36 41,37 37,38 35,42 33,38 29,37 33,36" fill="#FFF275" opacity="0.85"/>
+            <polygon points="165,36 166,39 170,40 166,41 165,44 164,41 160,40 164,39" fill="#FFF275" opacity="0.85"/>
+            <polygon points="175,90 176,93 179,94 176,95 175,98 174,95 171,94 174,93" fill="#FFF275" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="center-content">
+          <div class="turn-highlight" *ngIf="!isFinished()">
+            <span class="active-avatar">{{ currentPlayer()?.avatar }}</span>
+            <div class="active-info">
+              <span class="turn-player-name">{{ currentTurn() }}</span>
+              <span class="turn-action-tip" *ngIf="isMyTurn()">{{ i18n.getT('game.myTurn') }}</span>
+              <span class="turn-action-tip" *ngIf="!isMyTurn()">{{ i18n.getT('game.theirTurn', { name: currentTurn() }) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       @for (cell of cells(); track cell.id) {
         <div
           class="cell"
+          [style.grid-row]="cell.row"
+          [style.grid-column]="cell.col"
+          [class.empty-center]="cell.tiles.length === 0"
           [class.border]="cell.tiles.length > 0"
-          [class]="getKindClass(cell.tiles[0]?.kind)"
+          [ngClass]="getKindClass(cell.tiles[0]?.kind)"
           [class.tl-2]="cell.tiles.length > 1"
         >
-          @for (t of cell.tiles; track t.label) {
-            <span class="tile-label small" *ngIf="cell.tiles.length > 1">{{ tileLabel(t) }}</span>
-            <span class="tile-label" *ngIf="cell.tiles.length === 1">{{ tileLabel(t) }}</span>
+          @if (cell.tiles.length > 0) {
+            <div class="cell-inner">
+              <div class="cell-icon-wrap" [innerHTML]="tileSvg(cell.tiles[0]?.kind)"></div>
+              <div class="labels-wrap">
+                @for (t of cell.tiles; track t.label) {
+                  <span class="tile-label small" *ngIf="cell.tiles.length > 1">{{ tileLabel(t) }}</span>
+                  <span class="tile-label" *ngIf="cell.tiles.length === 1">{{ tileLabel(t) }}</span>
+                }
+              </div>
+            </div>
           }
           @for (p of cell.pcs; track p.id) {
-            <span class="piece" [class.land]="landedIds().includes(p.id)" [style.color]="pieceColor(p.id)" [class.big]="p.id === curTurn()"></span>
+            <span class="piece" [class.land]="landedIds().includes(p.id)" [style.background-color]="pieceColor(p.id)" [class.big]="p.id === curTurn()"></span>
           }
           @if (cell.tiles.length && cell.tiles[0]?.move !== undefined) {
             <span class="move-tag">{{ cell.tiles[0].move > 0 ? '+' + cell.tiles[0].move : cell.tiles[0].move }}</span>
+          }
+          @if (cell.tiles.length && cell.tiles[0]?.coins !== undefined) {
+            <span class="coin-tag">+{{ cell.tiles[0].coins }}</span>
           }
         </div>
       }
@@ -61,38 +156,72 @@
 
     <!-- 右侧面板 -->
     <aside class="panel">
-      <div class="dice">
-        <span class="die" [class.rolling]="diceValue() !== null">{{ getDiceDisplay() }}</span>
-        <span class="die-label" *ngIf="diceValue() !== null">{{ i18n.getT('game.dice') }} = {{ diceValue() }}</span>
+      <!-- 骰子互动区域 -->
+      <div class="dice-card">
+        <div class="dice-wrapper">
+          <div class="die-box" [class.rolling]="diceValue() !== null">
+            <span class="die-val">{{ getDiceDisplay() }}</span>
+          </div>
+          <div class="dice-info">
+            <span class="die-title">🎲 {{ i18n.getT('game.dice') }}</span>
+            <span class="die-label" *ngIf="diceValue() !== null">{{ i18n.getT('game.dice') }}: <strong>{{ diceValue() }}</strong></span>
+            <span class="die-hint" *ngIf="diceValue() === null">{{ isMyTurn() ? '点击下方掷骰' : '等待对手...' }}</span>
+          </div>
+        </div>
       </div>
 
+      <!-- 购买灯笼互动面板 -->
       @if (currentPending()?.kind === 'buy') {
-        <div class="action-block">
-          <p class="act-lbl">{{ i18n.getT('game.lanternBuy') }}</p>
-          <button class="buy" (click)="buy()">{{ i18n.getT('game.lanternBuy') }}</button>
-          <button class="buy-skip" (click)="skip()">{{ i18n.getT('game.lanternSkip') }}</button>
+        <div class="action-block lantern-card">
+          <div class="act-header">
+            <span class="act-icon">🏮</span>
+            <p class="act-lbl">{{ i18n.getT('game.lanternBuy') }}</p>
+          </div>
+          <div class="btn-group">
+            <button class="buy candy-btn" (click)="buy()">
+              <span>🏮 {{ i18n.getT('game.lanternBuy') }}</span>
+            </button>
+            <button class="buy-skip candy-btn ghost" (click)="skip()">
+              <span>{{ i18n.getT('game.lanternSkip') }}</span>
+            </button>
+          </div>
         </div>
       }
 
+      <!-- 答题挑战面板 -->
       @if (pendingQuestion()) {
         <div class="action-block question-block">
-          <p class="qtype" *ngIf="pendingQuestion()?.kind === 'math'">{{ i18n.getT('question.askMath') }}</p>
-          <p class="qtype" *ngIf="pendingQuestion()?.kind === 'riddle'">{{ i18n.getT('question.askRiddle') }}</p>
-          <p class="qtype" *ngIf="pendingQuestion()?.kind === 'knowledge'">{{ i18n.getT('question.askKnowledge') }}</p>
+          <div class="qheader">
+            <span class="qbadge math" *ngIf="pendingQuestion()?.kind === 'math'">🧮 {{ i18n.getT('question.askMath') }}</span>
+            <span class="qbadge riddle" *ngIf="pendingQuestion()?.kind === 'riddle'">📜 {{ i18n.getT('question.askRiddle') }}</span>
+            <span class="qbadge knowledge" *ngIf="pendingQuestion()?.kind === 'knowledge'">💡 {{ i18n.getT('question.askKnowledge') }}</span>
+          </div>
           <p class="qtext">{{ pendingQuestion()?.text }}</p>
           <div class="options">
-            <button class="opt" *ngFor="let opt of getPendingOptions(); let oIdx = index" (click)="answer(oIdx)">{{ opt }}</button>
+            <button class="opt" *ngFor="let opt of getPendingOptions(); let oIdx = index" (click)="answer(oIdx)">
+              <span class="opt-prefix">{{ ['A', 'B', 'C', 'D'][oIdx] }}</span>
+              <span class="opt-text">{{ opt }}</span>
+            </button>
           </div>
-          <button class="hint-btn" (click)="hint()" [disabled]="currentPlayer()?.hintUsed">{{ i18n.getT('game.hint') }}</button>
+          <button class="hint-btn candy-btn" (click)="hint()" [disabled]="currentPlayer()?.hintUsed">
+            <span>✨ {{ i18n.getT('game.hint') }}</span>
+          </button>
         </div>
       }
 
+      <!-- 掷骰子按钮 -->
       @if (isMyTurn() && currentPending()?.kind === 'none') {
-        <button class="roll" (click)="rollDice()">{{ i18n.getT('game.rollDice') }}</button>
+        <button class="roll candy-btn red-burst" (click)="rollDice()">
+          <span class="btn-text">🎲 {{ i18n.getT('game.rollDice') }}</span>
+        </button>
       }
 
+      <!-- 动态事件提示卡片 -->
       @if (animMsg()) {
-        <div class="anim" [class]="animKind()">{{ animMsg() }}</div>
+        <div class="anim" [class]="animKind()">
+          <span class="anim-icon">✨</span>
+          <span class="anim-text">{{ animMsg() }}</span>
+        </div>
       }
     </aside>
   </div>

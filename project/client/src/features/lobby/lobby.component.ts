@@ -21,7 +21,7 @@ export class LobbyComponent {
   protected mode = signal<'local' | 'online' | 'ai'>('local');
   protected difficulty = signal<'small' | 'big'>('small');
   protected players = signal<PlayerDraft[]>([
-    { name: 'Player 1', lang: 'zh_CN', kind: 'human', avatar: '🙂' },
+    { name: 'Player 1', lang: 'zh_CN', kind: 'human', avatar: '🐰' },
     { name: 'Player 2', lang: 'zh_CN', kind: 'human', avatar: '🌟' },
   ]);
 

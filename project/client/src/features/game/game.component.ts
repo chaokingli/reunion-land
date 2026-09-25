@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Gateway } from '../../core/gateway';
@@ -7,6 +8,7 @@ import { I18nService } from '../../i18n/i18n.service';
 import { SoundService } from '../../core/sound.service';
 import { BOARD, cellAt, GRID_SIZE, type TileDef } from '../../shared/board';
 import type { GameState, GameEvent } from '../../shared/types';
+import { CELL_SVGS } from './game-icons';
 
 type Confetti = { id: number; left: string; size: number; color: string; delay: number; duration: number };
 const CONFETTI_COLORS = ['#ffd34d', '#ff5c5c', '#7c4dff', '#2979ff', '#00e07a', '#ffab00', '#ff7043', '#388e3c', '#433b93', '#d6262f', '#1565c0', '#2e7d32'];
@@ -22,6 +24,7 @@ export class GameComponent {
   protected gw = inject(Gateway);
   protected i18n = inject(I18nService);
   protected sound = inject(SoundService);
+  protected sanitizer = inject(DomSanitizer);
 
   protected state = signal<GameState | null>(null);
 
@@ -39,13 +42,13 @@ export class GameComponent {
   protected cells = computed(() => {
     const s = this.state();
     if (!s) return [];
-    const out: { id: string; tiles: TileDef[]; pcs: any[] }[] = [];
+    const out: { id: string; row: number; col: number; tiles: TileDef[]; pcs: any[] }[] = [];
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
         const cell = cellAt(r, c);
         const tiles = cell.tiles.map((t) => BOARD[t] as TileDef);
         const pcs = cell.tiles.length ? s.players.filter((p) => cell.tiles.includes(p.position)) : [];
-        out.push({ id: r + ':' + c, tiles, pcs });
+        out.push({ id: r + ':' + c, row: r + 1, col: c + 1, tiles, pcs });
       }
     }
     return out;
@@ -98,6 +101,12 @@ export class GameComponent {
     const key = 'tiles.' + t.kind;
     const tr = this.i18n.get(key);
     return tr === key ? t.label : tr;
+  }
+
+  // 棋盘格子 SVG 矢量图
+  protected tileSvg(kind: string | undefined): SafeHtml {
+    if (!kind || !CELL_SVGS[kind]) return '';
+    return this.sanitizer.bypassSecurityTrustHtml(CELL_SVGS[kind]);
   }
   protected pieceColor(i: number): string {
     const map = ['var(--pc0)', 'var(--pc1)', 'var(--pc2)', 'var(--pc3)'];
