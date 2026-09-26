@@ -50,7 +50,7 @@ jobs:
     name: Docker image
     runs-on: ubuntu-latest
     needs: [unit, playwright]
-    if: ${{ github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'chore: bump version')) }}
+    if: "github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'chore: bump version') == false)"
     permissions:
       contents: read
       packages: write
@@ -80,7 +80,7 @@ jobs:
     name: Bump version
     runs-on: ubuntu-latest
     needs: docker
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && !contains(github.event.head_commit.message, 'chore: bump version') }}
+    if: "github.ref == 'refs/heads/main' && github.event_name == 'push' && contains(github.event.head_commit.message, 'chore: bump version') == false"
     permissions:
       contents: write
     steps:
