@@ -1,0 +1,42 @@
+<header class="top">
+  <div class="title-wrap">
+    <div class="brand">
+      <svg class="brand-moon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="14" fill="#FEEAA7"/>
+        <circle cx="13" cy="13" r="3" fill="#FDCB6E" opacity="0.4"/>
+        <circle cx="21" cy="18" r="2.5" fill="#FDCB6E" opacity="0.3"/>
+        <path d="M7 23C11 20 18 21 23 23" stroke="#FFF" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+      </svg>
+      <h1 class="title">{{ title() }}</h1>
+    </div>
+    @if (!finished()) {
+      <span class="turn-badge">
+        <span class="pulse-dot"></span>
+        {{ currentLabel() }}: <strong>{{ turnName() }}</strong>
+      </span>
+    }
+  </div>
+  <div class="scoreboard">
+    @for (p of players(); track p.id) {
+      <div class="pbar" [class.curt]="p.id === turn()" [style.--p-color]="pieceColor(p.id)">
+        <div class="avatar-ring">
+          <span class="avatar">{{ p.avatar }}</span>
+        </div>
+        <div class="p-details">
+          <div class="pname" [title]="p.name">{{ p.name }}</div>
+          <div class="p-stats">
+            <span class="coins">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none"><circle cx="8" cy="8" r="7" fill="#F1C40F"/><circle cx="8" cy="8" r="4.5" stroke="#D68910" stroke-width="1.2"/><rect x="6.5" y="6.5" width="3" height="3" fill="#B7950B"/></svg>
+              {{ p.coins }}
+            </span>
+            <span class="lanterns">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none"><ellipse cx="8" cy="8" rx="5" ry="5.5" fill="#E74C3C"/><circle cx="8" cy="8" r="2" fill="#F9E79F"/><path d="M8 1V3M8 13V15" stroke="#D35400" stroke-width="1.2" stroke-linecap="round"/></svg>
+              {{ p.lanterns }}/3
+            </span>
+            <span class="pos">🚩 {{ p.position }}</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</header>

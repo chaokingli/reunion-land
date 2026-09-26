@@ -1,6 +1,5 @@
 import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Gateway } from '../../core/gateway';
@@ -8,25 +7,16 @@ import { I18nService } from '../../i18n/i18n.service';
 import { SoundService } from '../../core/sound.service';
 import { BOARD, TILE_COUNT, cellAt, GRID_SIZE, type TileDef } from '../../shared/board';
 import type { GameState, GameEvent, Player } from '../../shared/types';
-import { CELL_SVGS } from './game-icons';
+import { GameHeaderComponent } from './game-header.component';
+import { GameCellComponent, type BoardCellView } from './game-cell.component';
+import { GameQuestionComponent } from './game-question.component';
 
 type Confetti = { id: number; left: string; size: number; color: string; delay: number; duration: number };
 const CONFETTI_COLORS = ['#ffd34d', '#ff5c5c', '#7c4dff', '#2979ff', '#00e07a', '#ffab00', '#ff7043', '#388e3c', '#433b93', '#d6262f', '#1565c0', '#2e7d32'];
 
-const PIECE_SVGS = [
-  // 0 玉兔
-  `<svg viewBox="0 0 32 40" width="100%" height="100%" aria-hidden="true"><ellipse cx="16" cy="37" rx="8" ry="2" fill="#000" opacity=".25"/><ellipse cx="10" cy="9" rx="3.1" ry="7" fill="currentColor"/><ellipse cx="22" cy="9" rx="3.1" ry="7" fill="currentColor"/><ellipse cx="10" cy="9.5" rx="1.5" ry="4.2" fill="#fff" opacity=".9"/><ellipse cx="22" cy="9.5" rx="1.5" ry="4.2" fill="#fff" opacity=".9"/><circle cx="16" cy="22" r="9" fill="currentColor"/><circle cx="12.6" cy="20.5" r="1.3" fill="#2b2118"/><circle cx="19.4" cy="20.5" r="1.3" fill="#2b2118"/><ellipse cx="16" cy="24.2" rx="1.8" ry="1.2" fill="#fff"/><path d="M8 28c2 3 12 3 16 0" stroke="#fff" stroke-width="1.2" fill="none" opacity=".7"/></svg>`,
-  // 1 灯笼
-  `<svg viewBox="0 0 32 40" width="100%" height="100%" aria-hidden="true"><ellipse cx="16" cy="37" rx="8" ry="2" fill="#000" opacity=".25"/><rect x="14" y="2" width="4" height="4" rx="1" fill="#5d4037"/><path d="M16 6v3" stroke="#5d4037" stroke-width="1.4"/><path d="M7 12h18l-2.2 16H9.2L7 12z" fill="currentColor"/><rect x="9" y="17" width="14" height="1.6" fill="#fff" opacity=".65"/><rect x="9.4" y="21.5" width="13.2" height="1.6" fill="#fff" opacity=".4"/><path d="M11 28h10l-1.2 4h-7.6z" fill="#5d4037"/><circle cx="16" cy="15" r="1.6" fill="#fff" opacity=".8"/></svg>`,
-  // 2 月亮
-  `<svg viewBox="0 0 32 40" width="100%" height="100%" aria-hidden="true"><ellipse cx="16" cy="37" rx="8" ry="2" fill="#000" opacity=".25"/><path d="M20 7a11 11 0 1 0 .2 22A8.5 8.5 0 1 1 20 7z" fill="currentColor"/><circle cx="12.5" cy="16" r="1.15" fill="#fff"/><circle cx="15.2" cy="20.5" r=".8" fill="#fff" opacity=".8"/><path d="M23 8l.7 2.1h2.2l-1.8 1.3.7 2.1-1.8-1.3-1.8 1.3.7-2.1-1.8-1.3h2.2z" fill="#FFD32A"/></svg>`,
-  // 3 桂花
-  `<svg viewBox="0 0 32 40" width="100%" height="100%" aria-hidden="true"><ellipse cx="16" cy="37" rx="8" ry="2" fill="#000" opacity=".25"/><circle cx="16" cy="14" r="4.2" fill="currentColor"/><circle cx="16" cy="8" r="3.2" fill="currentColor"/><circle cx="10.5" cy="12" r="3.2" fill="currentColor"/><circle cx="21.5" cy="12" r="3.2" fill="currentColor"/><circle cx="12" cy="18.5" r="3.2" fill="currentColor"/><circle cx="20" cy="18.5" r="3.2" fill="currentColor"/><circle cx="16" cy="14" r="1.5" fill="#fff" opacity=".85"/><rect x="14.6" y="22" width="2.8" height="10" rx="1.2" fill="#6d4c41"/><ellipse cx="16" cy="33" rx="5" ry="2" fill="currentColor"/></svg>`,
-];
-
 @Component({
   selector: 'app-game',
-  imports: [CommonModule],
+  imports: [CommonModule, GameHeaderComponent, GameCellComponent, GameQuestionComponent],
   templateUrl: './game.html',
   styleUrl: './game.scss',
 })
@@ -35,7 +25,6 @@ export class GameComponent implements OnDestroy {
   protected gw = inject(Gateway);
   protected i18n = inject(I18nService);
   protected sound = inject(SoundService);
-  protected sanitizer = inject(DomSanitizer);
 
   protected state = signal<GameState | null>(null);
 
@@ -55,14 +44,13 @@ export class GameComponent implements OnDestroy {
   private walkTimer: number | undefined = undefined;
   private walkQueue: { id: number; steps: number[] }[] = [];
   private resyncAfter = false;
-  private pieceHtml: SafeHtml[] | null = null;
 
   // 每格显示的格子 + 玩家棋子（按走动中的显示位置）
   protected cells = computed(() => {
     const s = this.state();
     if (!s) return [];
     const view = this.viewPos();
-    const out: { id: string; row: number; col: number; tiles: TileDef[]; tileIdx: number[]; pcs: Player[] }[] = [];
+    const out: BoardCellView[] = [];
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
         const cell = cellAt(r, c);
@@ -76,13 +64,6 @@ export class GameComponent implements OnDestroy {
     return out;
   });
 
-  protected lanternOwner(tile: number) {
-    const s = this.state();
-    if (!s) return null;
-    const id = s.lanternOwners[tile];
-    if (id === undefined) return null;
-    return s.players[id] ?? null;
-  }
   protected currentTurn() {
     const s = this.state();
     return s?.players[s?.turn ?? 0]?.name ?? '';
@@ -108,7 +89,7 @@ export class GameComponent implements OnDestroy {
   }
   protected currentPlayer() { return this.state()?.players[this.state()?.turn ?? 0]; }
   protected isFinished() { return this.state()?.finished ?? false; }
-  protected players(): any[] { return this.state()?.players ?? []; }
+  protected players(): Player[] { return this.state()?.players ?? []; }
   protected curTurn(): number { return this.state()?.turn ?? 0; }
   protected winner() {
     const s = this.state();
@@ -123,31 +104,6 @@ export class GameComponent implements OnDestroy {
     return this.i18n.getT('result.draw');
   }
 
-  protected getKindClass(kind: string | undefined): string {
-    if (!kind) return '';
-    return 'kind-' + kind;
-  }
-
-  // 棋盘格子文案：优先取 i18n 的 tiles.<kind> 译文，缺失时回退到中文 label
-  protected tileLabel(t: TileDef): string {
-    const key = 'tiles.' + t.kind;
-    const tr = this.i18n.get(key);
-    return tr === key ? t.label : tr;
-  }
-
-  // 棋盘格子 SVG 矢量图
-  protected tileSvg(kind: string | undefined): SafeHtml {
-    if (!kind || !CELL_SVGS[kind]) return '';
-    return this.sanitizer.bypassSecurityTrustHtml(CELL_SVGS[kind]);
-  }
-  protected pieceColor(i: number): string {
-    const map = ['var(--pc0)', 'var(--pc1)', 'var(--pc2)', 'var(--pc3)'];
-    return map[i % 4] ?? 'var(--pc0)';
-  }
-  protected pieceSvg(i: number): SafeHtml {
-    if (!this.pieceHtml) this.pieceHtml = PIECE_SVGS.map((svg) => this.sanitizer.bypassSecurityTrustHtml(svg));
-    return this.pieceHtml[i % 4] ?? this.pieceHtml[0];
-  }
   protected getDiceDisplay(): string {
     const d = this.diceValue();
     return d === null ? '?' : String(d);

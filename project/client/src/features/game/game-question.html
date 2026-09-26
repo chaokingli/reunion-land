@@ -1,0 +1,26 @@
+<div class="action-block question-block">
+  <div class="qheader">
+    @if (question().kind === 'math') {
+      <span class="qbadge math">🧮 {{ askMath() }}</span>
+    }
+    @if (question().kind === 'riddle') {
+      <span class="qbadge riddle">📜 {{ askRiddle() }}</span>
+    }
+    @if (question().kind === 'knowledge') {
+      <span class="qbadge knowledge">💡 {{ askKnowledge() }}</span>
+    }
+  </div>
+  <p class="qtext">{{ question().text }}</p>
+  <p class="qstakes">{{ rewardLabel() }} +{{ question().reward ?? 0 }} · {{ penaltyLabel() }} -{{ question().penalty ?? 0 }}</p>
+  <div class="options">
+    @for (opt of options(); track $index; let oIdx = $index) {
+      <button class="opt" type="button" (click)="answered.emit(oIdx)">
+        <span class="opt-prefix">{{ ['A', 'B', 'C', 'D'][oIdx] }}</span>
+        <span class="opt-text">{{ opt }}</span>
+      </button>
+    }
+  </div>
+  <button class="hint-btn candy-btn" type="button" (click)="hinted.emit()" [disabled]="hintUsed()">
+    <span>✨ {{ hintLabel() }}</span>
+  </button>
+</div>

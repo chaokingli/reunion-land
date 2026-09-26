@@ -1,0 +1,34 @@
+@if (cell().tiles.length > 0) {
+  <div class="cell-inner">
+    <div class="cell-icon-wrap" [innerHTML]="tileSvg(cell().tiles[0]?.kind)"></div>
+    <div class="labels-wrap">
+      @for (t of cell().tiles; track t.label) {
+        <span class="tile-label" [class.small]="cell().tiles.length > 1">{{ tileLabel(t) }}</span>
+      }
+    </div>
+  </div>
+}
+@for (p of cell().pcs; track p.id; let i = $index) {
+  <span
+    class="piece"
+    [class.land]="landedIds().includes(p.id)"
+    [class.hop-a]="hop()[p.id] === 'a'"
+    [class.hop-b]="hop()[p.id] === 'b'"
+    [class.big]="p.id === turn()"
+    [style.color]="pieceColor(p.id)"
+    [style.--slot]="i"
+    [attr.aria-label]="p.name"
+    [innerHTML]="pieceSvg(p.id)"
+  ></span>
+}
+@for (idx of cell().tileIdx; track idx) {
+  @if (owner(idx); as lantern) {
+    <span class="lantern-owner" [style.background]="pieceColor(lantern.id)" [title]="lantern.name">{{ lantern.avatar }}</span>
+  }
+}
+@if (cell().tiles.length && cell().tiles[0]?.move !== undefined) {
+  <span class="move-tag">{{ cell().tiles[0].move! > 0 ? '+' + cell().tiles[0].move : cell().tiles[0].move }}</span>
+}
+@if (cell().tiles.length && cell().tiles[0]?.coins !== undefined) {
+  <span class="coin-tag">+{{ cell().tiles[0].coins }}</span>
+}
