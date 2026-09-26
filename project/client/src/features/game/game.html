@@ -105,41 +105,24 @@
       }
     </div>
 
-    <!-- 右侧面板 -->
-    <aside class="panel">
-      <!-- 骰子互动区域 -->
-      <div class="dice-card">
-        <div class="dice-wrapper">
-          <div class="die-box" [class.rolling]="diceValue() !== null">
-            <span class="die-val">{{ getDiceDisplay() }}</span>
-          </div>
-          <div class="dice-info">
-            <span class="die-title">🎲 {{ i18n.getT('game.dice') }}</span>
-            <span class="die-label" *ngIf="diceValue() !== null">{{ i18n.getT('game.dice') }}: <strong>{{ diceValue() }}</strong></span>
-            <span class="die-hint" *ngIf="diceValue() === null">{{ isMyTurn() ? '点击下方掷骰' : '等待对手...' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 购买灯笼互动面板 -->
-      @if (currentPending()?.kind === 'buy') {
-        <div class="action-block lantern-card">
-          <div class="act-header">
-            <span class="act-icon">🏮</span>
-            <p class="act-lbl">{{ i18n.getT('game.lanternBuy') }}</p>
-          </div>
-          <div class="btn-group">
-            <button class="buy candy-btn" (click)="buy()">
-              <span>🏮 {{ i18n.getT('game.lanternBuy') }}</span>
-            </button>
-            <button class="buy-skip candy-btn ghost" (click)="skip()">
-              <span>{{ i18n.getT('game.lanternSkip') }}</span>
-            </button>
-          </div>
-        </div>
-      }
-
-      <!-- 答题挑战面板 -->
+    <app-game-panel
+      [diceText]="getDiceDisplay()"
+      [rolling]="diceValue() !== null"
+      [diceTitle]="i18n.getT('game.dice')"
+      [diceValueLabel]="'' + (diceValue() ?? '')"
+      [showDiceValue]="diceValue() !== null"
+      [diceHint]="isMyTurn() ? '点击下方掷骰' : '等待对手...'"
+      [showBuy]="currentPending()?.kind === 'buy'"
+      [buyLabel]="i18n.getT('game.lanternBuy')"
+      [skipLabel]="i18n.getT('game.lanternSkip')"
+      [showRoll]="isMyTurn() && currentPending()?.kind === 'none'"
+      [rollLabel]="i18n.getT('game.rollDice')"
+      [animMsg]="animMsg()"
+      [animKind]="animKind()"
+      (buy)="buy()"
+      (skip)="skip()"
+      (roll)="rollDice()"
+    >
       @if (pendingQuestion(); as question) {
         <app-game-question
           [question]="question"
@@ -155,22 +138,7 @@
           (hinted)="hint()"
         />
       }
-
-      <!-- 掷骰子按钮 -->
-      @if (isMyTurn() && currentPending()?.kind === 'none') {
-        <button class="roll candy-btn red-burst" (click)="rollDice()">
-          <span class="btn-text">🎲 {{ i18n.getT('game.rollDice') }}</span>
-        </button>
-      }
-
-      <!-- 动态事件提示卡片 -->
-      @if (animMsg()) {
-        <div class="anim" [class]="animKind()">
-          <span class="anim-icon">✨</span>
-          <span class="anim-text">{{ animMsg() }}</span>
-        </div>
-      }
-    </aside>
+    </app-game-panel>
   </div>
 
   <!-- 结束覆盖层 -->

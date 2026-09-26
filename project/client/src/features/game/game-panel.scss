@@ -1,0 +1,201 @@
+/* ---------------- 右侧操作面板 Panel ---------------- */
+:host {
+  width: 270px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: rgba(22, 14, 54, 0.85);
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 211, 42, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border-radius: 20px;
+  overflow: auto;
+}
+
+/* 骰子卡片 */
+.dice-card {
+  background: rgba(36, 24, 82, 0.7);
+  border-radius: 16px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dice-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.die-box {
+  width: 54px;
+  height: 54px;
+  background: linear-gradient(145deg, #FFFFFF, #F1F2F6);
+  border: 3.5px solid #FFD32A;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.8);
+}
+
+.die-val {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #FF4757;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.die-box.rolling {
+  animation: diceRoll 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes diceRoll {
+  0% { transform: rotate(0deg) scale(0.9); }
+  25% { transform: rotate(25deg) scale(1.2); }
+  50% { transform: rotate(-30deg) scale(1.15); }
+  75% { transform: rotate(15deg) scale(1.05); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+.dice-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.die-title {
+  font-size: 0.85rem;
+  color: #A4B0BE;
+  font-weight: 700;
+}
+
+.die-label {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #FFD32A;
+}
+
+.die-hint {
+  font-size: 0.8rem;
+  color: #747D8C;
+}
+
+/* 按钮通用糖果质感 Candy Button */
+.candy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.25), 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.candy-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.candy-btn.red-burst {
+  background: linear-gradient(135deg, #FF6B81, #FF4757);
+  color: #FFF;
+  border-bottom: 4px solid #C0392B;
+}
+.candy-btn.red-burst:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #C0392B, 0 8px 16px rgba(255, 71, 87, 0.4);
+}
+
+.candy-btn.ghost {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFD32A;
+  border: 1px solid rgba(255, 211, 42, 0.4);
+  box-shadow: none;
+}
+.candy-btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 互动卡片 Action Block */
+.action-block {
+  background: rgba(36, 24, 82, 0.85);
+  border-radius: 16px;
+  padding: 14px;
+  border: 1.5px solid rgba(255, 211, 42, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.act-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.act-icon { font-size: 1.5rem; }
+.act-lbl { margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--gold); }
+
+.btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 动效通知条 */
+.anim {
+  margin-top: auto;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: springUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes springUp {
+  from { transform: translateY(12px) scale(0.9); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.anim.bonus {
+  background: linear-gradient(135deg, #26DE81, #20BF6B);
+  color: #064420;
+}
+.anim.lose {
+  background: linear-gradient(135deg, #FF6B81, #FF4757);
+  color: #FFF;
+}
+.anim.win {
+  background: linear-gradient(135deg, #FFEAA7, #FFD32A);
+  color: #4A3000;
+}
+.anim.info {
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFF;
+}
+
+@media screen and (min-width: 900px) and (max-height: 850px) {
+  :host { width: 240px; }
+}
+@media screen and (min-width: 1280px) {
+  :host { width: 290px; }
+}
+@media screen and (max-width: 800px) {
+  :host { width: 100%; max-height: 320px; }
+}

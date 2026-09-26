@@ -1,0 +1,47 @@
+<div class="dice-card">
+  <div class="dice-wrapper">
+    <div class="die-box" [class.rolling]="rolling()">
+      <span class="die-val">{{ diceText() }}</span>
+    </div>
+    <div class="dice-info">
+      <span class="die-title">🎲 {{ diceTitle() }}</span>
+      @if (showDiceValue()) {
+        <span class="die-label">{{ diceTitle() }}: <strong>{{ diceValueLabel() }}</strong></span>
+      } @else {
+        <span class="die-hint">{{ diceHint() }}</span>
+      }
+    </div>
+  </div>
+</div>
+
+@if (showBuy()) {
+  <div class="action-block lantern-card">
+    <div class="act-header">
+      <span class="act-icon">🏮</span>
+      <p class="act-lbl">{{ buyLabel() }}</p>
+    </div>
+    <div class="btn-group">
+      <button class="buy candy-btn" type="button" (click)="buy.emit()">
+        <span>🏮 {{ buyLabel() }}</span>
+      </button>
+      <button class="buy-skip candy-btn ghost" type="button" (click)="skip.emit()">
+        <span>{{ skipLabel() }}</span>
+      </button>
+    </div>
+  </div>
+}
+
+<ng-content />
+
+@if (showRoll()) {
+  <button class="roll candy-btn red-burst" type="button" (click)="roll.emit()">
+    <span class="btn-text">🎲 {{ rollLabel() }}</span>
+  </button>
+}
+
+@if (animMsg()) {
+  <div class="anim" [class]="animKind()">
+    <span class="anim-icon">✨</span>
+    <span class="anim-text">{{ animMsg() }}</span>
+  </div>
+}

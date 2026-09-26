@@ -10,13 +10,14 @@ import type { GameState, GameEvent, Player } from '../../shared/types';
 import { GameHeaderComponent } from './game-header.component';
 import { GameCellComponent, type BoardCellView } from './game-cell.component';
 import { GameQuestionComponent } from './game-question.component';
+import { GamePanelComponent } from './game-panel.component';
 
 type Confetti = { id: number; left: string; size: number; color: string; delay: number; duration: number };
 const CONFETTI_COLORS = ['#ffd34d', '#ff5c5c', '#7c4dff', '#2979ff', '#00e07a', '#ffab00', '#ff7043', '#388e3c', '#433b93', '#d6262f', '#1565c0', '#2e7d32'];
 
 @Component({
   selector: 'app-game',
-  imports: [CommonModule, GameHeaderComponent, GameCellComponent, GameQuestionComponent],
+  imports: [CommonModule, GameHeaderComponent, GameCellComponent, GameQuestionComponent, GamePanelComponent],
   templateUrl: './game.html',
   styleUrl: './game.scss',
 })
