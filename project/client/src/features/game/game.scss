@@ -399,6 +399,21 @@
   z-index: 5;
 }
 
+.lantern-owner {
+  position: absolute;
+  left: -3px;
+  bottom: -3px;
+  z-index: 6;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid #fff;
+  font-size: 0.62rem;
+  line-height: 16px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
 .move-tag {
   top: -4px;
   right: -3px;

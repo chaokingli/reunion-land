@@ -112,6 +112,7 @@ export interface GameEvent {
   choice?: number;
   correct?: boolean;
   option?: string;
+  owner?: number;
   win?: boolean;
 }
 

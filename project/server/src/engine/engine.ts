@@ -127,7 +127,7 @@ function continueTile(state: GameState, bank: QuestionBank, events: GameEvent[])
   const player = state.turn;
   const p = state.players[player];
   let tile = p.position;
-  for (;;) {
+  for (let hops = 0; hops < 8; hops++) {
     const t = BOARD[tile];
     switch (t.kind) {
       case 'start':
@@ -139,9 +139,12 @@ function continueTile(state: GameState, bank: QuestionBank, events: GameEvent[])
           return false;
         }
         if (state.lanternOwners[tile] !== player) {
+          const owner = state.lanternOwners[tile];
           if (p.coins >= RULES.rent) {
             p.coins -= RULES.rent;
-            events.push(ev('RENT', player, 'board.rent_paid', { amount: RULES.rent, tile }));
+            events.push(ev('RENT', player, 'board.rent_paid', { amount: RULES.rent, tile, owner }));
+          } else {
+            events.push(ev('RENT', player, 'board.rent_unpaid', { amount: RULES.rent, tile, owner, tag: 'unpaid' }));
           }
         }
         break;
@@ -188,12 +191,12 @@ function continueTile(state: GameState, bank: QuestionBank, events: GameEvent[])
         p.position = after;
         tile = after;
         events.push(ev('MOVED', player, 'board.moved', { via: t.kind, from: before, to: after, tile }));
-        break;
+        continue;
       }
     }
-    // 落到普通格（无等待项）：回合结束
     return true;
   }
+  return true;
 }
 
 // ---------- 主入口 ----------

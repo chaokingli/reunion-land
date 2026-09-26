@@ -4,7 +4,7 @@ import type { Server, Socket } from 'socket.io';
 import { createGame, processAction } from '../engine/engine.js';
 import type { GameStateAction, GameState, NewGameConfig } from '../engine/types.js';
 import type { QuestionBank } from '../engine/types.js';
-import { getQuestionBank } from '../db/bank.js';
+import { questionBankForDifficulty } from '../db/bank.js';
 import { createRabbitAi } from '../ai/local.js';
 import { AI_PARAMS } from '../ai/local.js';
 
@@ -28,7 +28,7 @@ export class RoomManager {
     const room: RoomInfo = {
       id,
       state: createGame(config),
-      bank: getQuestionBank(),
+      bank: questionBankForDifficulty(config.difficulty),
       status: 'lobby',
       sockets: new Map(),
       aiTimer: null,

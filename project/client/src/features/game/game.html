@@ -154,6 +154,11 @@
               [innerHTML]="pieceSvg(p.id)"
             ></span>
           }
+          @for (idx of cell.tileIdx; track idx) {
+            @if (lanternOwner(idx); as owner) {
+              <span class="lantern-owner" [style.background]="pieceColor(owner.id)" [title]="owner.name">{{ owner.avatar }}</span>
+            }
+          }
           @if (cell.tiles.length && cell.tiles[0]?.move !== undefined) {
             <span class="move-tag">{{ cell.tiles[0].move > 0 ? '+' + cell.tiles[0].move : cell.tiles[0].move }}</span>
           }

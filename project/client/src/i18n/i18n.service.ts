@@ -34,7 +34,7 @@ export class I18nService implements I18n {
       if (cur == null) return key;
     }
     if (typeof cur !== 'string') return key;
-    return cur.replace(/({\w+})/g, (_m, varName) => (vars[varName] ?? ''));
+    return cur.replace(/\{(\w+)\}/g, (whole, name) => (vars[name] ?? whole));
   }
 
   // 简写：取字符串

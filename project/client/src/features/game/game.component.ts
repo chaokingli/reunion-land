@@ -62,7 +62,7 @@ export class GameComponent implements OnDestroy {
     const s = this.state();
     if (!s) return [];
     const view = this.viewPos();
-    const out: { id: string; row: number; col: number; tiles: TileDef[]; pcs: Player[] }[] = [];
+    const out: { id: string; row: number; col: number; tiles: TileDef[]; tileIdx: number[]; pcs: Player[] }[] = [];
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
         const cell = cellAt(r, c);
@@ -70,12 +70,19 @@ export class GameComponent implements OnDestroy {
         const pcs = cell.tiles.length
           ? s.players.filter((p) => cell.tiles.includes(view[p.id] ?? p.position))
           : [];
-        out.push({ id: r + ':' + c, row: r + 1, col: c + 1, tiles, pcs });
+        out.push({ id: r + ':' + c, row: r + 1, col: c + 1, tiles, tileIdx: cell.tiles, pcs });
       }
     }
     return out;
   });
 
+  protected lanternOwner(tile: number) {
+    const s = this.state();
+    if (!s) return null;
+    const id = s.lanternOwners[tile];
+    if (id === undefined) return null;
+    return s.players[id] ?? null;
+  }
   protected currentTurn() {
     const s = this.state();
     return s?.players[s?.turn ?? 0]?.name ?? '';
@@ -162,6 +169,7 @@ export class GameComponent implements OnDestroy {
       amount: (ev.amount ?? 0).toString(),
       // 按事件所属玩家取名字（WIN 是赢家、TURN_END 是本轮玩家），而非固定的 p[0]
       name: p && ev.player >= 0 ? p[ev.player].name : '',
+      owner: p && ev.owner !== undefined && ev.owner >= 0 ? p[ev.owner]?.name ?? '' : '',
       option: ev.option ?? '',
     };
   }
@@ -174,7 +182,7 @@ export class GameComponent implements OnDestroy {
     const table: Record<string, string> = {
       DICE_ROLLED: 'events.roll',
       PASS_START: 'events.passStart',
-      RENT: 'events.rent',
+      RENT: ev.tag === 'unpaid' ? 'events.rentUnpaid' : 'events.rent',
       LANTERN_BOUGHT: 'events.buy',
       LANTERN_SKIPPED: 'events.skip',
       QUESTION_REQUIRED: 'events.question',
@@ -334,7 +342,7 @@ export class GameComponent implements OnDestroy {
         this.showMsg('events.roll', { dice: String(dieEv.dice ?? ''), name: this.currentTurn() }, 'info');
       }
       // 展示最后一件事件给动画/提示（问题/收益/胜利等）
-      const ev = evs.at(-1) as GameEvent;
+      const ev = ([...evs].reverse().find((e) => e.type !== 'TURN_END' && e.type !== 'DICE_ROLLED') ?? evs.at(-1)) as GameEvent;
       if (ev.type !== 'DICE_ROLLED') {
         this.playEventSound(ev);
         // 查不到对应文案（如无 via 的 MOVED）时不显示，避免回显 raw key

@@ -1,6 +1,6 @@
 import { getDb } from './schema.js';
 import { midAutumnQuestions } from './midautumn.js';
-import type { QuestionBank } from '../engine/types.js';
+import type { Difficulty, QuestionBank } from '../engine/types.js';
 
 export type BankQuestion = {
   kind: 'riddle' | 'knowledge' | 'math';
@@ -138,19 +138,32 @@ export function seedAll(): number {
   return insertQuestions([...zh, ...en, ...de, ...math, ...midAutumnQuestions()]);
 }
 
-// DB 支持的题库；空库时返回 fallback（种子未导入时也能玩）
-export function getQuestionBank(): QuestionBank {
-  const db = getDb();
+type PoolRow = {
+  id: number;
+  kind: 'riddle' | 'knowledge' | 'math';
+  lang: string;
+  title: string;
+  options: string;
+  answer: number;
+  reward: number;
+  penalty: number;
+};
+
+// 开局一次装入该难度的全部题目。之后只在这批题里随机抽，抽完再从同一批里重抽。
+export function questionBankForDifficulty(difficulty: Difficulty): QuestionBank {
+  const rows = getDb()
+    .prepare(
+      'SELECT id, kind, lang, title, options, answer, reward, penalty FROM questions WHERE difficulty = ? ORDER BY id',
+    )
+    .all(difficulty) as PoolRow[];
   return {
-    nextQuestion(lang, kind, difficulty, usedIds) {
-      const rows: any[] = db
-        .prepare(
-          'SELECT id, title, options, answer, reward, penalty FROM questions WHERE kind = ? AND lang = ? AND difficulty = ? ORDER BY id',
-        )
-        .all(kind, lang, difficulty);
-      const unused = rows.filter((r) => !usedIds.includes(r.id));
-      if (unused.length === 0) return null;
-      const pick = unused[Math.floor(Math.random() * unused.length)];
+    nextQuestion(lang, kind, _difficulty, usedIds) {
+      const sameLang = rows.filter((r) => r.kind === kind && r.lang === lang);
+      const pool = sameLang.length ? sameLang : rows.filter((r) => r.kind === kind);
+      if (pool.length === 0) return null;
+      const unused = pool.filter((r) => !usedIds.includes(r.id));
+      const pickFrom = unused.length ? unused : pool;
+      const pick = pickFrom[Math.floor(Math.random() * pickFrom.length)];
       return {
         qid: pick.id,
         kind,
