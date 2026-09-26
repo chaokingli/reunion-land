@@ -1,6 +1,6 @@
 {
   "name": "@reunion-land/server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "private": true,
   "description": "Reunion Land (团圆大富翁) game server - Express + socket.io + SQLite",
