@@ -16,4 +16,7 @@ project/client/dist/
 project/server/node_modules/
 project/server/dist/
 project/server/*.log
+/test-results/
+/playwright-report/
+/blob-report/
 

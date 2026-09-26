@@ -103,6 +103,14 @@ LLM_MODEL=gpt-4o-mini
 ⏳ 待做：en/de **人工审读**（AI 翻译，重点德语）。
 详见 `project/docs/plan.md`。
 
+## 许可证
+
+[MIT](LICENSE)
+
+## CI
+
+推送到 `main` 或打开 Pull Request 时，GitHub Actions 会跑服务端单元测试（Vitest、在线对局、兔姐）和 Playwright。`main` 上测试通过后，把镜像推到 `ghcr.io/<owner>/reunion-land`（当前版本号和 `latest`），再把根目录与服务端 `package.json` 的 patch 版本加一。版本号提交信息以 `chore: bump version` 开头，不会再次发布镜像。
+
 ## 命名
 - 运行时中文名：**团圆大富翁**（界面标题）
 - 英文名 / 目录：**Reunion Land** → `reunion-land`
