@@ -1,0 +1,7 @@
+<div class="result-overlay">
+  <div class="result-card">
+    <h2>{{ title() }}</h2>
+    <button class="btn-primary" type="button" (click)="playAgain.emit()">{{ playAgainLabel() }}</button>
+    <button class="btn-secondary" type="button" (click)="back.emit()">{{ backLabel() }}</button>
+  </div>
+</div>

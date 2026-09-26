@@ -142,11 +142,13 @@
   </div>
 
   <!-- 结束覆盖层 -->
-  <div class="result-overlay" *ngIf="isFinished()">
-    <div class="result-card">
-      <h2>{{ getResultTitle() }}</h2>
-      <button class="btn-primary" (click)="playAgain()">{{ i18n.getT('result.playAgain') }}</button>
-      <button class="btn-secondary" (click)="backLobby()">{{ i18n.getT('result.backLobby') }}</button>
-    </div>
-  </div>
+  @if (isFinished()) {
+    <app-game-result
+      [title]="getResultTitle()"
+      [playAgainLabel]="i18n.getT('result.playAgain')"
+      [backLabel]="i18n.getT('result.backLobby')"
+      (playAgain)="playAgain()"
+      (back)="backLobby()"
+    />
+  }
 </div>
