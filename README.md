@@ -44,7 +44,7 @@ cd project/client && npm run start:client
 ### Docker 部署（单容器，同端口同域）
 ```bash
 # 构建并启动，访问 http://localhost:3000
-docker compose up --build
+docker compose up
 # 或
 docker build -t reunion-land . && docker run -d --rm -p 3000:3000 reunion-land:latest
 ```

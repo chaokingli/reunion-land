@@ -1,8 +1,8 @@
 # 团圆大富翁 单容器部署
-# 用法: docker compose up --build
+# 用法: docker compose up
 services:
   reunion:
-    build: .
+    image: ghcr.io/chaokingli/reunion-land:latest
     ports:
       - "3000:3000"
     # 持久化数据库（可选）
